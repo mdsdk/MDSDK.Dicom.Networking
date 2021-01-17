@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\BinaryIO\MDSDK.BinaryIO\MDSDK.BinaryIO.csproj" />
+    <ProjectReference Include="..\..\Dicom.Serialization\MDSDK.Dicom.Serialization\MDSDK.Dicom.Serialization.csproj" />
+    <ProjectReference Include="..\MDSDK.Dicom.Networking\MDSDK.Dicom.Networking.csproj" />
+  </ItemGroup>
+
+</Project>

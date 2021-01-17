@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MDSDK.Dicom.Networking.Test": {
+      "commandName": "Project",
+      "commandLineArgs": "www.dicomserver.co.uk:104/AETITLE"
+    }
+  }
+}
