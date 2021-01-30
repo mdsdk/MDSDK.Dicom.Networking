@@ -2,12 +2,12 @@
 
 namespace MDSDK.Dicom.Networking.Messages
 {
-    class CommandHeader
+    public class CommandHeader
     {
         public string AffectedSOPClassUID { get; set; }
 
         public string RequestedSOPClassUID { get; set; }
 
-        public ushort CommandField { get; set; }
+        public CommandType CommandField { get; set; }
     }
 }

@@ -6,11 +6,11 @@ using System;
 
 namespace MDSDK.Dicom.Networking.Net
 {
-    internal sealed class PresentationContextOutputStream : StreamBase
+    internal sealed class PresentationContextOutputStream : OutputStreamBase
     {
         private readonly DicomConnection _connection;
 
-        private readonly DataTransferPDUHeader _pduHeader = new DataTransferPDUHeader();
+        private readonly DataTransferPDUHeader _dataTransferPDUHeader = new DataTransferPDUHeader();
 
         private readonly FragmentHeader _fragmentHeader = new FragmentHeader();
 
@@ -54,19 +54,26 @@ namespace MDSDK.Dicom.Networking.Net
                 }
                 data[..writeSpan.Length].CopyTo(writeSpan);
                 data = data[writeSpan.Length..];
-                SendPDU(isLastFragment: false);
+                SendDataTransferPDU(isLastFragment: false);
             }
         }
 
-        private void SendPDU(bool isLastFragment)
+        private void SendDataTransferPDU(bool isLastFragment)
         {
-            _pduHeader.Length = (uint)(FragmentHeader.Size + _bufferedDataLength);
-            _pduHeader.WriteTo(_connection.Output);
-            
+            _dataTransferPDUHeader.Length = (uint)(FragmentHeader.Size + _bufferedDataLength);
             _fragmentHeader.Length = (uint)(2 + _bufferedDataLength);
             _fragmentHeader.IsLastFragment = isLastFragment;
-            _fragmentHeader.WriteTo(_connection.Output);
+            
+            if (_connection.TraceWriter != null)
+            {
+                NetUtils.TraceOutput(_connection.TraceWriter, "Sending ", _dataTransferPDUHeader);
+                NetUtils.TraceOutput(_connection.TraceWriter, "followed by ", _fragmentHeader);
+                _connection.TraceWriter.WriteLine($"followed by {_bufferedDataLength} bytes of data");
+                _connection.TraceWriter.Flush();
+            }
 
+            _dataTransferPDUHeader.WriteTo(_connection.Output);
+            _fragmentHeader.WriteTo(_connection.Output);
             _connection.Output.WriteBytes(_dataBuffer.AsSpan(0, _bufferedDataLength));
             _connection.Output.Flush(isLastFragment ? FlushMode.Deep : FlushMode.Shallow);
 
@@ -77,7 +84,7 @@ namespace MDSDK.Dicom.Networking.Net
         {
             if (_bufferedDataLength > 0)
             {
-                SendPDU(isLastFragment: true);
+                SendDataTransferPDU(isLastFragment: true);
             }
         }
     }

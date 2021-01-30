@@ -12,14 +12,14 @@ namespace MDSDK.Dicom.Networking.DataUnits
     {
         public DataUnitType DataUnitType { get; }
 
-        protected DataUnit(DataUnitType dataUnitType)
+        internal DataUnit(DataUnitType dataUnitType)
         {
             DataUnitType = dataUnitType;
         }
 
-        protected abstract long ReadContentLength(BinaryStreamReader input);
+        internal abstract long ReadContentLength(BinaryStreamReader input);
 
-        protected abstract void WriteContentLength(BinaryStreamWriter output, long length);
+        internal abstract void WriteContentLength(BinaryStreamWriter output, long length);
 
         public abstract void ReadContentFrom(BinaryStreamReader input);
 

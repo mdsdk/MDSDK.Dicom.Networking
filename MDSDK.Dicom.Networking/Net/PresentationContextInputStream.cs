@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
 using MDSDK.BinaryIO;
-using MDSDK.Dicom.Networking.DataUnits;
-using MDSDK.Dicom.Networking.DataUnits.PDUs;
 using System;
 using System.IO;
 
 namespace MDSDK.Dicom.Networking.Net
 {
-    internal sealed class PresentationContextInputStream : StreamBase
+    internal sealed class PresentationContextInputStream : InputStreamBase
     {
         private readonly DicomConnection _connection;
 
@@ -39,6 +37,12 @@ namespace MDSDK.Dicom.Networking.Net
             }
 
             var fragmentHeader = FragmentHeader.ReadFrom(_connection.Input);
+
+            if (_connection.TraceWriter != null)
+            {
+                NetUtils.TraceOutput(_connection.TraceWriter, "Received ", fragmentHeader);
+                _connection.TraceWriter.Flush();
+            }
 
             if (!isFirstFragment && (_fragmentHeader.PresentationContextID != PresentationContextID))
             {
@@ -72,8 +76,6 @@ namespace MDSDK.Dicom.Networking.Net
             _fragmentEndPosition = 0;
         }
 
-        public override bool CanRead => true;
-
         private bool _atEnd;
 
         public override int Read(Span<byte> buffer)
@@ -102,8 +104,10 @@ namespace MDSDK.Dicom.Networking.Net
                 }
                 StartReadFragment(isFirstFragment: false);
             }
-            
-            return _connection.Input.ReadSome(buffer);
+
+            var maxBytesToRead = Math.Min(buffer.Length, _fragmentEndPosition - _connection.Input.Position);
+
+            return _connection.Input.ReadSome(buffer.Slice(0, (int)maxBytesToRead));
         }
 
         public override void Close()

@@ -12,7 +12,7 @@ namespace MDSDK.Dicom.Networking.Net
 
         public string AbstractSyntaxName { get; set; }
 
-        public IReadOnlyList<string> TransferSyntaxNames { get; set; } 
+        public List<string> TransferSyntaxNames { get; } = new List<string>(); 
 
         internal PresentationContextRequestItem ToItem()
         {
@@ -44,8 +44,6 @@ namespace MDSDK.Dicom.Networking.Net
                 PresentationContextID = item.PresentationContextID
             };
 
-            var transferSyntaxNames = new List<string>();
-
             foreach (var subItem in item.SubItems)
             {
                 if (subItem is AbstractSyntaxSubItem abstractSyntaxSubItem)
@@ -54,11 +52,9 @@ namespace MDSDK.Dicom.Networking.Net
                 }
                 else if (subItem is TransferSyntaxSubItem transferSyntaxSubItem)
                 {
-                    transferSyntaxNames.Add(transferSyntaxSubItem.TransferSyntaxName);
+                    presentationContextRequest.TransferSyntaxNames.Add(transferSyntaxSubItem.TransferSyntaxName);
                 }
             }
-
-            presentationContextRequest.TransferSyntaxNames = transferSyntaxNames;
 
             return presentationContextRequest;
         }

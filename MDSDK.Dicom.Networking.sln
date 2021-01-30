@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MDSDK.Dicom.Networking", "M
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MDSDK.Dicom.Serialization", "..\Dicom.Serialization\MDSDK.Dicom.Serialization\MDSDK.Dicom.Serialization.csproj", "{FF09056B-D99E-46A2-B506-09A8EE4BD9E5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MDSDK.Dicom.Networking.Test", "MDSDK.Dicom.Networking.Test\MDSDK.Dicom.Networking.Test.csproj", "{5BB1B081-8687-4DED-8357-CE32AE8BA6B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MDSDK.Dicom.Networking.Examples", "MDSDK.Dicom.Networking.Examples\MDSDK.Dicom.Networking.Examples.csproj", "{5BB1B081-8687-4DED-8357-CE32AE8BA6B4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MDSDK.BinaryIO", "..\BinaryIO\MDSDK.BinaryIO\MDSDK.BinaryIO.csproj", "{9FE80465-B9CA-4A68-95E9-D87E456DAED9}"
 EndProject

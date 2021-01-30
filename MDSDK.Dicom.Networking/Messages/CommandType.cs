@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Networking.Messages
 {
-    enum CommandType
+    public enum CommandType : ushort
     {
         C_STORE_RQ = 0x0001,
         C_STORE_RSP = 0x8001,

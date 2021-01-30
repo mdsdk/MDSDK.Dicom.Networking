@@ -56,7 +56,8 @@ namespace MDSDK.Dicom.Networking.Net
                 }
                 else if (propertyValue is IFormattable formattableValue)
                 {
-                    attributeValue = formattableValue.ToString(null, NumberFormatInfo.InvariantInfo);
+                    attributeValue = formattableValue.ToString(null, NumberFormatInfo.InvariantInfo)
+                        + $" (0x{formattableValue.ToString("X", NumberFormatInfo.InvariantInfo)})";
                 }
                 else if (propertyValue is byte[] byteArrayValue)
                 {
@@ -66,7 +67,7 @@ namespace MDSDK.Dicom.Networking.Net
                     }
                     else
                     {
-                        attributeValue = "0x" + Convert.ToHexString(byteArrayValue);
+                        attributeValue = $"0x{Convert.ToHexString(byteArrayValue)}";
                     }
                 }
                 else if (propertyValue is IEnumerable enumerableValue)
@@ -78,6 +79,10 @@ namespace MDSDK.Dicom.Networking.Net
                         propertyElement.Add(itemElement);
                     }
                     objElement.Add(propertyElement);
+                }
+                else if (propertyValue != null)
+                {
+                    attributeValue = propertyValue.ToString();
                 }
                 if (attributeValue != null) 
                 {

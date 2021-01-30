@@ -12,33 +12,30 @@ namespace MDSDK.Dicom.Networking.Net
 
         public byte PresentationContextID { get; set; }
 
-        public byte MessageControlHeader { get; set; }
+        public MessageControlHeader MessageControlHeader { get; set; }
 
         public const int Size = 6;
 
-        private const byte FragmentTypeBit = 0x01;
-        private const byte IsLastFragmentBit = 0x02;
-
         public FragmentType FragmentType
         {
-            get => ((MessageControlHeader & FragmentTypeBit) != 0) ? FragmentType.Command: FragmentType.Dataset;
+            get => MessageControlHeader.HasFlag(MessageControlHeader.IsCommand) ? FragmentType.Command: FragmentType.Dataset;
             set
             {
                 if (value != FragmentType)
                 {
-                    MessageControlHeader ^= FragmentTypeBit;
+                    MessageControlHeader ^= MessageControlHeader.IsCommand;
                 }
             }
         }
 
         public bool IsLastFragment
         {
-            get => (MessageControlHeader & IsLastFragmentBit) != 0;
+            get => MessageControlHeader.HasFlag(MessageControlHeader.IsLastFragment);
             set
             {
                 if (value != IsLastFragment)
                 {
-                    MessageControlHeader ^= IsLastFragmentBit;
+                    MessageControlHeader ^= MessageControlHeader.IsLastFragment;
                 }
             }
         }
@@ -54,7 +51,7 @@ namespace MDSDK.Dicom.Networking.Net
             {
                 Length = length,
                 PresentationContextID = input.ReadByte(),
-                MessageControlHeader = input.ReadByte()
+                MessageControlHeader = (MessageControlHeader)input.ReadByte()
             };
         }
 
@@ -62,7 +59,7 @@ namespace MDSDK.Dicom.Networking.Net
         {
             output.Write<UInt32>(Length);
             output.WriteByte(PresentationContextID);
-            output.WriteByte(MessageControlHeader);
+            output.WriteByte((byte)MessageControlHeader);
         }
     }
 }

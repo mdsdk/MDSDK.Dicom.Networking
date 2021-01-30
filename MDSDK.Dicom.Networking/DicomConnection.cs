@@ -3,11 +3,13 @@
 using MDSDK.BinaryIO;
 using MDSDK.Dicom.Networking.DataUnits;
 using MDSDK.Dicom.Networking.DataUnits.PDUs;
+using MDSDK.Dicom.Networking.Messages;
 using MDSDK.Dicom.Networking.Net;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
@@ -18,7 +20,9 @@ namespace MDSDK.Dicom.Networking
     {
         internal Socket Socket { get; }
 
-        internal SocketStream SocketStream { get; }
+        internal SocketInputStream SocketInputStream { get; }
+
+        internal SocketOutputStream SocketOutputStream { get; }
 
         internal BinaryStreamReader Input { get; }
 
@@ -27,14 +31,16 @@ namespace MDSDK.Dicom.Networking
         private DicomConnection(Socket socket, CancellationToken cancellationToken)
         {
             Socket = socket;
-            SocketStream = new SocketStream(socket, cancellationToken);
-            Input = new BinaryStreamReader(SocketStream, ByteOrder.BigEndian);
-            Output = new BinaryStreamWriter(SocketStream, ByteOrder.BigEndian);
+            SocketInputStream = new SocketInputStream(socket, cancellationToken);
+            SocketOutputStream = new SocketOutputStream(socket, cancellationToken);
+            Input = new BinaryStreamReader(SocketInputStream, ByteOrder.BigEndian);
+            Output = new BinaryStreamWriter(SocketOutputStream, ByteOrder.BigEndian);
         }
 
         public void Dispose()
         {
-            SocketStream.Dispose();
+            SocketOutputStream.Dispose();
+            SocketInputStream.Dispose();
             Socket.Dispose();
         }
 
@@ -173,36 +179,91 @@ namespace MDSDK.Dicom.Networking
             Socket.Shutdown(SocketShutdown.Send);
         }
 
-        public void SendCommand(byte presentationContextID, Action<Stream> writeCommandAction)
+        public void SendCommand(byte presentationContextID, Command command) 
         {
+            var commandAttribute = command.GetType().GetCustomAttribute<CommandAttribute>();
+            
+            command.CommandField = commandAttribute.CommandType;
+            command.CommandDataSetType = commandAttribute.HasDataSet ? 0x0000 : 0x0101;
+
+            if (TraceWriter != null)
+            {
+                NetUtils.TraceOutput(TraceWriter, $"PC {presentationContextID} sending ", command);
+            }
+
             using (var stream = new PresentationContextOutputStream(this, presentationContextID, FragmentType.Command))
             {
-                writeCommandAction.Invoke(stream);
+                Command.WriteTo(stream, command);
                 stream.Flush();
             }
         }
 
-        public bool ReceiveCommand(Action<byte, Stream> readCommandAction)
+        public void SendDataset(byte presentationContextID, Action<Stream> writeDatasetAction)
+        {
+            using (var stream = new PresentationContextOutputStream(this, presentationContextID, FragmentType.Dataset))
+            {
+                writeDatasetAction.Invoke(stream);
+                stream.Flush();
+            }
+        }
+
+        public bool TryReceiveCommand(out byte presentationContextID, out Command command)
         {
             if (ReadNextPDU(DataUnitType.DataTransferPDU, DataUnitType.ReleaseRequestPDU) is DataTransferPDUHeader)
             {
                 using (var stream = new PresentationContextInputStream(this, FragmentType.Command))
                 {
-                    readCommandAction.Invoke(stream.PresentationContextID, stream);
+                    presentationContextID = stream.PresentationContextID;
+                    command = Command.ReadFrom(stream);
+                    if (TraceWriter != null)
+                    {
+                        NetUtils.TraceOutput(TraceWriter, $"PC {presentationContextID} received ", command);
+                    }
                 }
                 return true;
             }
             else
             {
+                presentationContextID = 0;
+                command = null;
                 return false;
             }
         }
 
-        public Stream OpenDatasetInputStream(out byte presentationContextID)
+        public Command ReceiveCommand(byte presentationContextID)
         {
-            var datasetStream = new PresentationContextInputStream(this, FragmentType.Dataset);
-            presentationContextID = datasetStream.PresentationContextID;
-            return datasetStream;
+            ReadNextPDU(DataUnitType.DataTransferPDU);
+
+            using (var stream = new PresentationContextInputStream(this, FragmentType.Command))
+            {
+                if (stream.PresentationContextID != presentationContextID)
+                {
+                    throw new IOException($"Expected PCID {presentationContextID} but got {stream.PresentationContextID}");
+                }
+                var command = Command.ReadFrom(stream);
+                if (TraceWriter != null)
+                {
+                    NetUtils.TraceOutput(TraceWriter, $"PC {presentationContextID} received ", command);
+                }
+                return command;
+            }
+        }
+
+        public void ReceiveDataset(byte presentationContextID, Action<Stream> readDatasetAction)
+        {
+            if (Input.Position == EndOfDataTransferPDUPosition)
+            {
+                ReadNextDataTransferPDU();
+            }
+
+            using (var stream = new PresentationContextInputStream(this, FragmentType.Dataset))
+            {
+                if (stream.PresentationContextID != presentationContextID)
+                {
+                    throw new IOException($"Expected PCID {presentationContextID} but got {stream.PresentationContextID}");
+                }
+                readDatasetAction.Invoke(stream);
+            }
         }
 
         public uint? MaxDataTransferPDULengthRequestedByPeer { get; private set; }

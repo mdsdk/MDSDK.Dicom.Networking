@@ -7,8 +7,4 @@ namespace MDSDK.Dicom.Networking.Messages
     {
         public ushort MessageIDBeingRespondedTo { get; set; }
     }
-
-    public class CCancelRequestMessage : DicomMessage<CCancelRequest>
-    { 
-    }
 }

@@ -13,4 +13,8 @@
     <ProjectReference Include="..\..\Dicom.Serialization\MDSDK.Dicom.Serialization\MDSDK.Dicom.Serialization.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="SCUs\" />
+  </ItemGroup>
+
 </Project>

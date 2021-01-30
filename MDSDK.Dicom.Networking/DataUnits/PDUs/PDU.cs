@@ -14,12 +14,12 @@ namespace MDSDK.Dicom.Networking.DataUnits.PDUs
         {
         }
 
-        protected override long ReadContentLength(BinaryStreamReader input)
+        internal override long ReadContentLength(BinaryStreamReader input)
         {
             return input.Read<UInt32>();
         }
 
-        protected override void WriteContentLength(BinaryStreamWriter output, long length)
+        internal override void WriteContentLength(BinaryStreamWriter output, long length)
         {
             output.Write<UInt32>(checked((uint)length));
         }

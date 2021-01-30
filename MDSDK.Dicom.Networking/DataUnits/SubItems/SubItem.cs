@@ -9,17 +9,17 @@ namespace MDSDK.Dicom.Networking.DataUnits.SubItems
 {
     abstract class SubItem : DataUnit
     {
-        protected SubItem(DataUnitType subItemType)
+        internal SubItem(DataUnitType subItemType)
             : base(subItemType)
         {
         }
 
-        protected override long ReadContentLength(BinaryStreamReader input)
+        internal override long ReadContentLength(BinaryStreamReader input)
         {
             return input.Read<UInt16>();
         }
 
-        protected override void WriteContentLength(BinaryStreamWriter output, long length)
+        internal override void WriteContentLength(BinaryStreamWriter output, long length)
         {
             output.Write<UInt16>(checked((ushort)length));
         }

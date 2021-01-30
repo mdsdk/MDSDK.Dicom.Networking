@@ -2,45 +2,55 @@
 
 using MDSDK.Dicom.Networking.Messages;
 using MDSDK.Dicom.Networking.Net;
+using MDSDK.Dicom.Serialization;
+using MDSDK.Dicom.Serialization.TransferSyntaxes;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 
 namespace MDSDK.Dicom.Networking.SCUs
 {
-    public abstract class DicomClient : IDisposable
+    public class DicomClient
     {
-        private CancellationTokenSource _cancellationTokenSource;
-
-        protected DicomClient()
-        {
-            _cancellationTokenSource = new CancellationTokenSource();
-        }
-
-        public void CancelAfter(TimeSpan timeSpan)
-        {
-            _cancellationTokenSource.CancelAfter(timeSpan);
-        }
-
-        public void Cancel()
-        {
-            _cancellationTokenSource.Cancel();
-        }
-        
         public string AETitle { get; set; }
 
-        protected abstract void WritePresentationContextRequests(IList<PresentationContextRequest> presentationContextRequests);
+        public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
 
-        protected abstract void ReadPresentationContextResponses(IReadOnlyList<PresentationContextResponse> presentationContextResponses);
+        private List<PresentationContextRequest> _presentationContextRequests = new List<PresentationContextRequest>();
+        
+        public byte ProposePresentationContext(DicomUID sopClassUID, params TransferSyntax[] proposedTransferSyntaxes)
+        {
+            var presentationContextID = 1 + 2 * _presentationContextRequests.Count;
+            if (presentationContextID > byte.MaxValue)
+            {
+                throw new Exception("Out of presentation context IDs");
+            }
 
-        internal DicomConnection _connection;
+            var presentationContextRequest = new PresentationContextRequest
+            {
+                PresentationContextID = (byte)presentationContextID,
+                AbstractSyntaxName = sopClassUID.UID,
+            };
+
+            presentationContextRequest.TransferSyntaxNames.AddRange(proposedTransferSyntaxes.Select(o => o.DicomUID.UID));
+
+            _presentationContextRequests.Add(presentationContextRequest);
+
+            return presentationContextRequest.PresentationContextID;
+        }
 
         public StreamWriter TraceWriter { get; set; }
 
-        public void ConnectTo(DicomNetworkAddress ae)
+        public DicomAssociation ConnectTo(DicomNetworkAddress ae)
         {
-            var connection = DicomConnection.Connect(ae.HostNameOrIPAddress, ae.Port, _cancellationTokenSource.Token);
+            if (_presentationContextRequests.Count == 0)
+            {
+                throw new InvalidOperationException("Missing presentation context proposals");
+            }
+
+            var connection = DicomConnection.Connect(ae.HostNameOrIPAddress, ae.Port, CancellationToken);
             try
             {
                 connection.TraceWriter = TraceWriter;
@@ -50,68 +60,32 @@ namespace MDSDK.Dicom.Networking.SCUs
                     CalledAETitle = ae.AETitle,
                     CallingAETitle = AETitle,
                 };
-                WritePresentationContextRequests(associationRequest.PresentationContextRequests);
-                connection.SendAssociationRequest(associationRequest);
-                
-                var associationResponse = connection.ReceiveAssociationResponse();
-                ReadPresentationContextResponses(associationResponse.PresentationContextResponses);
 
-                _connection = connection;
+                associationRequest.PresentationContextRequests.AddRange(_presentationContextRequests);
+
+                connection.SendAssociationRequest(associationRequest);
+
+                var associationResponse = connection.ReceiveAssociationResponse();
+
+                var presentationContextTransferSyntaxes = new Dictionary<byte, TransferSyntax>();
+
+                foreach (var presentationContextResponse in associationResponse.PresentationContextResponses)
+                {
+                    var presentationContextID = presentationContextResponse.PresentationContextID;
+                    
+                    if (presentationContextResponse.Result == PresentationContextResponse.ResultCode.Acceptance)
+                    {
+                        DicomTransferSyntax.TryLookup(presentationContextResponse.TransferSyntaxName, out TransferSyntax transferSyntax);
+                        presentationContextTransferSyntaxes[presentationContextID] = transferSyntax;
+                    }
+                }
+
+                return new DicomAssociation(connection, presentationContextTransferSyntaxes);
             }
             catch (Exception)
             {
                 connection.Dispose();
                 throw;
-            }
-        }
-
-        public void Send<T>(int presentationContextID, T command) where T : Command, new()
-        {
-            if (TraceWriter != null)
-            {
-                NetUtils.TraceOutput(TraceWriter, $"PC {presentationContextID} sending ", command);
-            }
-            _connection.SendCommand(1, stream => Command.WriteTo(stream, command));
-        }
-
-        public T Receive<T>(int expectedPresentationContextID) where T : Command, new()
-        {
-            T command = null;
-
-            _connection.ReceiveCommand((byte presentationContextID, Stream stream) =>
-            {
-                if (presentationContextID != expectedPresentationContextID)
-                {
-                    throw new IOException($"Unexpected presentation context ID {presentationContextID}");
-                }
-                command = Command.ReadFrom<T>(stream);
-                if (TraceWriter != null)
-                {
-                    NetUtils.TraceOutput(TraceWriter, $"PC {presentationContextID} received ", command);
-                }
-            });
-
-            return command;
-        }
-
-        public void DisconnectGracefully()
-        {
-            _connection.SendReleaseRequest();
-            _connection.ReceiveReleaseResponse();
-        }
-
-        public void Dispose()
-        {
-            if (_connection != null)
-            {
-                _connection.Dispose();
-                _connection = null;
-            }
-
-            if (_cancellationTokenSource != null)
-            {
-                _cancellationTokenSource.Dispose();
-                _cancellationTokenSource = null;
             }
         }
     }
