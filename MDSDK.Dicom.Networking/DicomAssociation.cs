@@ -34,7 +34,7 @@ namespace MDSDK.Dicom.Networking.SCUs
             _connection.SendCommand(presentationContextID, request);
         }
 
-        public void SendDataset<TDataset>(byte presentationContextID, TDataset dataset) where TDataset : new()
+        public void SendDataset<TDataset>(byte presentationContextID, TDataset dataset)
         {
             _connection.SendDataset(presentationContextID, stream =>
             {

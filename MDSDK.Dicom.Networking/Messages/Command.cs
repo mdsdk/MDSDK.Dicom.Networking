@@ -106,7 +106,7 @@ namespace MDSDK.Dicom.Networking.Messages
             output.Write<UInt32>(commandGroupLength);
 
             var writer = new DicomStreamWriter(output, DicomVRCoding.Implicit);
-            serializer.Serialize(command, writer);
+            serializer.Serialize(writer, command);
 
             output.Flush(FlushMode.Shallow);
         }

@@ -54,10 +54,10 @@ namespace MDSDK.Dicom.Networking.Test
 
                 using var association = client.ConnectTo(remoteAEAddress);
 
-                cEchoSCU.Execute(association);
+                cEchoSCU.Ping(association);
 
-                cFindSCU.Execute(association, "*TEST*");
-                cFindSCU.Execute(association, "*DOE*");
+                cFindSCU.GetPatients(association, "*TEST*");
+                cFindSCU.GetPatients(association, "*DOE*");
 
                 association.Release();
             }

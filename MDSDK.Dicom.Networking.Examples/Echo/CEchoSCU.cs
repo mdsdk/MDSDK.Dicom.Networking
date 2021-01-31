@@ -17,7 +17,7 @@ namespace MDSDK.Dicom.Networking.Examples.Echo
                 DicomTransferSyntax.ImplicitVRLittleEndian);
         }
 
-        public void Execute(DicomAssociation association)
+        public void Ping(DicomAssociation association)
         {
             Console.WriteLine("Executing C-ECHO");
             
