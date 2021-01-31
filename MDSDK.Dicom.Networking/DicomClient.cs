@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
-using MDSDK.Dicom.Networking.Messages;
 using MDSDK.Dicom.Networking.Net;
 using MDSDK.Dicom.Serialization;
 using MDSDK.Dicom.Serialization.TransferSyntaxes;
@@ -10,7 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-namespace MDSDK.Dicom.Networking.SCUs
+namespace MDSDK.Dicom.Networking
 {
     public class DicomClient
     {

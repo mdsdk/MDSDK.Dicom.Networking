@@ -40,11 +40,11 @@ namespace MDSDK.Dicom.Networking.Net
 
             if (_connection.TraceWriter != null)
             {
-                NetUtils.TraceOutput(_connection.TraceWriter, "Received ", fragmentHeader);
+                NetUtils.TraceOutput(_connection.TraceWriter, $"PC {fragmentHeader.PresentationContextID} received ", fragmentHeader);
                 _connection.TraceWriter.Flush();
             }
 
-            if (!isFirstFragment && (_fragmentHeader.PresentationContextID != PresentationContextID))
+            if (!isFirstFragment && (fragmentHeader.PresentationContextID != PresentationContextID))
             {
                 throw new IOException($"Expected presentation context ID {PresentationContextID} but got {_fragmentHeader.PresentationContextID}");
             }
@@ -64,7 +64,7 @@ namespace MDSDK.Dicom.Networking.Net
             {
                 throw new Exception("Logic error");
             }
-
+            
             if (_connection.Input.Position != _fragmentEndPosition)
             {
                 throw new Exception("Logic error");
@@ -110,16 +110,10 @@ namespace MDSDK.Dicom.Networking.Net
             return _connection.Input.ReadSome(buffer.Slice(0, (int)maxBytesToRead));
         }
 
-        public override void Close()
+        internal void SkipToEnd()
         {
-            if (_fragmentHeader != null)
-            {
-                EndReadFragment(out bool wasLastFragment);
-                if (!wasLastFragment)
-                {
-                    throw new Exception("Logic error");
-                }
-            }
+            Span<byte> buffer = stackalloc byte[4096];
+            while (Read(buffer) > 0) { continue; }
         }
     }
 }

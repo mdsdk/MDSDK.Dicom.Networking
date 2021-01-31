@@ -2,11 +2,11 @@
 
 namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
 {
-    public class PatientQuery : PatientInfo
+    public class PatientIdentifier : PatientInfo
     {
         public QueryRetrieveLevel QueryRetrieveLevel { get; set; } = QueryRetrieveLevel.PATIENT;
 
-        public PatientQuery()
+        public PatientIdentifier()
         {
             PatientName = string.Empty;
             PatientID = string.Empty;

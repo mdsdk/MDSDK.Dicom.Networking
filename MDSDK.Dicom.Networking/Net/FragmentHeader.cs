@@ -18,7 +18,7 @@ namespace MDSDK.Dicom.Networking.Net
 
         public FragmentType FragmentType
         {
-            get => MessageControlHeader.HasFlag(MessageControlHeader.IsCommand) ? FragmentType.Command: FragmentType.Dataset;
+            get => MessageControlHeader.HasFlag(MessageControlHeader.IsCommand) ? FragmentType.Command: FragmentType.DataSet;
             set
             {
                 if (value != FragmentType)

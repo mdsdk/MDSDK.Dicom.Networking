@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace MDSDK.Dicom.Networking.SCUs
+namespace MDSDK.Dicom.Networking
 {
     public sealed class DicomAssociation : IDisposable
     {
@@ -28,18 +28,26 @@ namespace MDSDK.Dicom.Networking.SCUs
 
         private ushort _requestCounter = 0;
 
-        public void SendRequest<TRequest>(byte presentationContextID, TRequest request) where TRequest : Request, new()
+        public void SendRequest<TRequest>(byte presentationContextID, TRequest request, CommandIsFollowedByDataSet isFollowedByDataSet) 
+            where TRequest : Request, new()
         {
             request.MessageID = _requestCounter++;
-            _connection.SendCommand(presentationContextID, request);
+            _connection.SendCommand(presentationContextID, request, isFollowedByDataSet);
         }
 
-        public void SendDataset<TDataset>(byte presentationContextID, TDataset dataset)
+        public void SendResponse<TResponse>(byte presentationContextID, TResponse response, ushort requestMessageID,
+            CommandIsFollowedByDataSet isFollowedByDataSet) where TResponse : Response, new()
         {
-            _connection.SendDataset(presentationContextID, stream =>
+            response.MessageIDBeingRespondedTo = requestMessageID;
+            _connection.SendCommand(presentationContextID, response, isFollowedByDataSet);
+        }
+
+        public void SendDataSet<TDataSet>(byte presentationContextID, TDataSet dataSet)
+        {
+            _connection.SendDataSet(presentationContextID, stream =>
             {
                 var presentationContext = PresentationContexts[presentationContextID];
-                DicomSerializer.Serialize<TDataset>(stream, presentationContext.TransferSyntax, dataset);
+                DicomSerializer.Serialize<TDataSet>(stream, presentationContext.TransferSyntax, dataSet);
             });
         }
 
@@ -61,17 +69,38 @@ namespace MDSDK.Dicom.Networking.SCUs
             }
         }
 
-        public TDataset ReceiveDataset<TDataset>(byte presentationContextID) where TDataset : new()
+        public void ReceiveDataSet(byte presentationContextID, Action<Stream> readAction)
         {
-            TDataset dataset = default;
+            _connection.ReceiveDataSet(presentationContextID, readAction);
+        }
 
-            _connection.ReceiveDataset(presentationContextID, stream =>
+        public TDataSet ReceiveDataSet<TDataSet>(byte presentationContextID) where TDataSet : new()
+        {
+            TDataSet dataSet = default;
+
+            ReceiveDataSet(presentationContextID, stream =>
             {
                 var presentationContext = PresentationContexts[presentationContextID];
-                dataset = DicomSerializer.Deserialize<TDataset>(stream, presentationContext.TransferSyntax);
+                dataSet = DicomSerializer.Deserialize<TDataSet>(stream, presentationContext.TransferSyntax);
             });
 
-            return dataset;
+            if (_connection.TraceWriter != null)
+            {
+                NetUtils.TraceOutput(_connection.TraceWriter, $"PC {presentationContextID} received ", dataSet);
+            }
+
+            return dataSet;
+        }
+
+        public delegate void MessageHandler(DicomAssociation association, byte presentationContextID, Command command, out bool stop);
+
+        public void DispatchIncomingMessages(MessageHandler messageHandler)
+        {
+            var stop = false;
+            while (!stop && _connection.TryReceiveCommand(out byte presentationContextID, out Command command))
+            {
+                messageHandler.Invoke(this, presentationContextID, command, out stop);
+            }
         }
 
         public void Release()

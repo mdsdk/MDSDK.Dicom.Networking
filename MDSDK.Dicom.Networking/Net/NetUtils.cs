@@ -97,7 +97,7 @@ namespace MDSDK.Dicom.Networking.Net
             OmitXmlDeclaration = true,
             CloseOutput = false,
             Indent = true,
-            NewLineOnAttributes = true,
+            NewLineOnAttributes = false,
         };
 
         public static void TraceOutput(TextWriter writer, string prefix, object obj)

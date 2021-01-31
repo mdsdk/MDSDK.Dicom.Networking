@@ -4,7 +4,7 @@ using System;
 
 namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
 {
-    public class SeriesQuery : SeriesInfo
+    public class SeriesIdentifier : SeriesInfo
     {
         public QueryRetrieveLevel QueryRetrieveLevel { get; set; } = QueryRetrieveLevel.SERIES;
 
@@ -12,7 +12,7 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
 
         public string StudyInstanceUID { get; set; }
 
-        public SeriesQuery(string patientID, string studyInstanceUID)
+        public SeriesIdentifier(string patientID, string studyInstanceUID)
         {
             PatientID = patientID;
             StudyInstanceUID = studyInstanceUID;

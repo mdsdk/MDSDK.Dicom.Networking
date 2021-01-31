@@ -12,17 +12,9 @@ namespace MDSDK.Dicom.Networking.Messages
     {
         public ushort CommandDataSetType { get; set; }
 
-        internal Command() { }
+        public bool IsFollowedByDataSet() => CommandDataSetType != 0x0101;
 
-        public static T Create<T>() where T : Command, new()
-        {
-            var commandAttribute = typeof(T).GetCustomAttribute<CommandAttribute>();
-            return new T
-            {
-                CommandField = commandAttribute.CommandType,
-                CommandDataSetType = commandAttribute.HasDataSet ? 0x0000 : 0x0101
-            };
-        }
+        internal Command() { }
 
         private static readonly DicomSerializer<CommandHeader> CommandHeaderSerializer = DicomSerializer.GetSerializer<CommandHeader>();
 
@@ -93,7 +85,7 @@ namespace MDSDK.Dicom.Networking.Messages
         public static void WriteTo(Stream stream, Command command)
         {
             var serializer = GetSerializer(command.CommandField);
-            
+
             if (!serializer.TryGetSerializedLength(command, DicomVRCoding.Implicit, out uint commandGroupLength))
             {
                 throw new Exception($"Could not calculate command group length for {command.CommandField}");

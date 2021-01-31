@@ -5,6 +5,6 @@ namespace MDSDK.Dicom.Networking.Messages
     [Command(CommandType.C_GET_RQ, true)]
     public sealed class CGetRequest : Request
     {
-        public ushort Priority { get; set; }
+        public RequestPriority Priority { get; set; }
     }
 }

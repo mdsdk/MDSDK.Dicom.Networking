@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
 using MDSDK.Dicom.Networking.Messages;
-using MDSDK.Dicom.Networking.SCUs;
 using MDSDK.Dicom.Serialization;
 using System;
 using System.Collections.Generic;
@@ -10,15 +9,15 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
 {
     public class CFindSCU
     {
-        private readonly byte _presentationContextID;
+        public byte PresentationContextID { get; }
 
         public CFindSCU(DicomClient client)
         {
-            _presentationContextID = client.ProposePresentationContext(DicomUID.PatientRootQueryRetrieveInformationModelFIND,
+            PresentationContextID = client.ProposePresentationContext(DicomUID.PatientRootQueryRetrieveInformationModelFIND,
                 DicomTransferSyntax.ImplicitVRLittleEndian);
         }
 
-        private IReadOnlyList<TInfo> PerformCFind<TQuery, TInfo>(DicomAssociation association, TQuery query) 
+        private IReadOnlyList<TInfo> PerformCFind<TIdentifier, TInfo>(DicomAssociation association, TIdentifier identifier)
             where TInfo : new()
         {
             var cFindRequest = new CFindRequest
@@ -27,17 +26,17 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
                 Priority = RequestPriority.Medium
             };
 
-            association.SendRequest(_presentationContextID, cFindRequest);
-            association.SendDataset(_presentationContextID, query);
+            association.SendRequest(PresentationContextID, cFindRequest, CommandIsFollowedByDataSet.Yes);
+            association.SendDataSet(PresentationContextID, identifier);
 
             var infoList = new List<TInfo>();
 
-            var cFindResponse = association.ReceiveResponse<CFindResponse>(_presentationContextID, cFindRequest.MessageID);
+            var cFindResponse = association.ReceiveResponse<CFindResponse>(PresentationContextID, cFindRequest.MessageID);
             while (cFindResponse.IsPending())
             {
-                var info = association.ReceiveDataset<TInfo>(_presentationContextID);
+                var info = association.ReceiveDataSet<TInfo>(PresentationContextID);
                 infoList.Add(info);
-                cFindResponse = association.ReceiveResponse<CFindResponse>(_presentationContextID, cFindRequest.MessageID);
+                cFindResponse = association.ReceiveResponse<CFindResponse>(PresentationContextID, cFindRequest.MessageID);
             }
 
             if (!cFindResponse.IsSuccess())
@@ -48,54 +47,60 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
             return infoList;
         }
 
-        private void GetSOPInstances(DicomAssociation association, PatientInfo patient, StudyInfo study, SeriesInfo series)
+        private void FindSOPInstances(DicomAssociation association, PatientInfo patient, StudyInfo study, SeriesInfo series,
+            List<SOPInstanceIdentifier> sopInstanceIdentifiers)
         {
-            var query = new SOPInstanceQuery(patient.PatientID, study.StudyInstanceUID, series.SeriesInstanceUID);
-            var sopInstanceList = PerformCFind<SOPInstanceQuery, SOPInstanceInfo>(association, query);
+            var sopInstanceSearchKey = new SOPInstanceIdentifier(patient.PatientID, study.StudyInstanceUID, series.SeriesInstanceUID);
+            var sopInstanceList = PerformCFind<SOPInstanceIdentifier, SOPInstanceInfo>(association, sopInstanceSearchKey);
             foreach (var sopInstance in sopInstanceList)
             {
-                if (DicomUID.TryLookup(sopInstance.SOPClassUID, out DicomUID knownSOPClassUID))
+                sopInstanceIdentifiers.Add(new SOPInstanceIdentifier(patient.PatientID, study.StudyInstanceUID, series.SeriesInstanceUID)
                 {
-                    sopInstance.SOPClassUID = knownSOPClassUID.Name;
-                }
-                Console.WriteLine($">>> SOP Instance: {sopInstance.SOPClassUID} ({sopInstance.SOPInstanceUID})");
+                    SOPClassUID = sopInstance.SOPClassUID,
+                    SOPInstanceUID = sopInstance.SOPInstanceUID
+                });
+
+                var sopClass = DicomUID.TryLookup(sopInstance.SOPClassUID, out DicomUID knownSOPClassUID)
+                    ? knownSOPClassUID.Name
+                    : sopInstance.SOPClassUID;
+
+                Console.WriteLine($">>> SOP Instance: {sopClass} ({sopInstance.SOPInstanceUID})");
             }
         }
 
-        private void GetSeries(DicomAssociation association, PatientInfo patient, StudyInfo study)
+        private void FindSOPInstances(DicomAssociation association, PatientInfo patient, StudyInfo study,
+            List<SOPInstanceIdentifier> sopInstanceIdentifiers)
         {
-            var query = new SeriesQuery(patient.PatientID, study.StudyInstanceUID);
-            var seriesList = PerformCFind<SeriesQuery, SeriesInfo>(association, query);
+            var seriesSearchKey = new SeriesIdentifier(patient.PatientID, study.StudyInstanceUID);
+            var seriesList = PerformCFind<SeriesIdentifier, SeriesInfo>(association, seriesSearchKey);
             foreach (var series in seriesList)
             {
                 Console.WriteLine($">> Series: {series.Modality} {series.SeriesTime} '{series.SeriesDescription}' {series.NumberOfSeriesRelatedInstances}");
-                GetSOPInstances(association, patient, study, series);
+                FindSOPInstances(association, patient, study, series, sopInstanceIdentifiers);
             }
         }
 
-        private void GetStudies(DicomAssociation association, PatientInfo patient)
+        private void FindSOPInstances(DicomAssociation association, PatientInfo patient,
+            List<SOPInstanceIdentifier> sopInstanceIdentifiers)
         {
-            var query = new StudyQuery(patient.PatientID);
-            var studyList = PerformCFind<StudyQuery, StudyInfo>(association, query);
+            var studySearchKey = new StudyIdentifier(patient.PatientID);
+            var studyList = PerformCFind<StudyIdentifier, StudyInfo>(association, studySearchKey);
             foreach (var study in studyList)
             {
                 Console.WriteLine($"> Study: {study.StudyDate} '{study.StudyDescription}'");
-                GetSeries(association, patient, study);
+                FindSOPInstances(association, patient, study, sopInstanceIdentifiers);
             }
         }
 
-        public void GetPatients(DicomAssociation association, string patientName)
+        public void FindSOPInstances(DicomAssociation association, string patientName,
+            List<SOPInstanceIdentifier> sopInstanceIdentifiers)
         {
-            var query = new PatientQuery
-            {
-                PatientName = patientName,
-            };
-
-            var patientList = PerformCFind<PatientQuery, PatientInfo>(association, query);
+            var patientSearchKey = new PatientIdentifier { PatientName = patientName };
+            var patientList = PerformCFind<PatientIdentifier, PatientInfo>(association, patientSearchKey);
             foreach (var patient in patientList)
             {
                 Console.WriteLine($"Patient: {patient.PatientID} '{patient.PatientName}' {patient.PatientBirthDate} {patient.PatientSex}");
-                GetStudies(association, patient);
+                FindSOPInstances(association, patient, sopInstanceIdentifiers);
             }
         }
     }

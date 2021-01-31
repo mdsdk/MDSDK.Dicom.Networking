@@ -11,8 +11,6 @@ using System.IO;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
-using System.Xml;
-using System.Xml.Linq;
 
 namespace MDSDK.Dicom.Networking
 {
@@ -179,12 +177,12 @@ namespace MDSDK.Dicom.Networking
             Socket.Shutdown(SocketShutdown.Send);
         }
 
-        public void SendCommand(byte presentationContextID, Command command) 
+        public void SendCommand(byte presentationContextID, Command command, CommandIsFollowedByDataSet commandIsFollowedByDataSet) 
         {
             var commandAttribute = command.GetType().GetCustomAttribute<CommandAttribute>();
             
             command.CommandField = commandAttribute.CommandType;
-            command.CommandDataSetType = commandAttribute.HasDataSet ? 0x0000 : 0x0101;
+            command.CommandDataSetType = (commandIsFollowedByDataSet == CommandIsFollowedByDataSet.Yes) ? 0xFEFE : 0x0101;
 
             if (TraceWriter != null)
             {
@@ -198,11 +196,11 @@ namespace MDSDK.Dicom.Networking
             }
         }
 
-        public void SendDataset(byte presentationContextID, Action<Stream> writeDatasetAction)
+        public void SendDataSet(byte presentationContextID, Action<Stream> writeDataSetAction)
         {
-            using (var stream = new PresentationContextOutputStream(this, presentationContextID, FragmentType.Dataset))
+            using (var stream = new PresentationContextOutputStream(this, presentationContextID, FragmentType.DataSet))
             {
-                writeDatasetAction.Invoke(stream);
+                writeDataSetAction.Invoke(stream);
                 stream.Flush();
             }
         }
@@ -215,6 +213,7 @@ namespace MDSDK.Dicom.Networking
                 {
                     presentationContextID = stream.PresentationContextID;
                     command = Command.ReadFrom(stream);
+                    stream.SkipToEnd();
                     if (TraceWriter != null)
                     {
                         NetUtils.TraceOutput(TraceWriter, $"PC {presentationContextID} received ", command);
@@ -241,6 +240,7 @@ namespace MDSDK.Dicom.Networking
                     throw new IOException($"Expected PCID {presentationContextID} but got {stream.PresentationContextID}");
                 }
                 var command = Command.ReadFrom(stream);
+                stream.SkipToEnd();
                 if (TraceWriter != null)
                 {
                     NetUtils.TraceOutput(TraceWriter, $"PC {presentationContextID} received ", command);
@@ -249,20 +249,21 @@ namespace MDSDK.Dicom.Networking
             }
         }
 
-        public void ReceiveDataset(byte presentationContextID, Action<Stream> readDatasetAction)
+        public void ReceiveDataSet(byte presentationContextID, Action<Stream> readDataSetAction)
         {
             if (Input.Position == EndOfDataTransferPDUPosition)
             {
                 ReadNextDataTransferPDU();
             }
 
-            using (var stream = new PresentationContextInputStream(this, FragmentType.Dataset))
+            using (var stream = new PresentationContextInputStream(this, FragmentType.DataSet))
             {
                 if (stream.PresentationContextID != presentationContextID)
                 {
                     throw new IOException($"Expected PCID {presentationContextID} but got {stream.PresentationContextID}");
                 }
-                readDatasetAction.Invoke(stream);
+                readDataSetAction.Invoke(stream);
+                stream.SkipToEnd();
             }
         }
 

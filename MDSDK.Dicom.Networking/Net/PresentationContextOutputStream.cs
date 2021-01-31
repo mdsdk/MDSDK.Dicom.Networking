@@ -66,9 +66,9 @@ namespace MDSDK.Dicom.Networking.Net
             
             if (_connection.TraceWriter != null)
             {
-                NetUtils.TraceOutput(_connection.TraceWriter, "Sending ", _dataTransferPDUHeader);
-                NetUtils.TraceOutput(_connection.TraceWriter, "followed by ", _fragmentHeader);
-                _connection.TraceWriter.WriteLine($"followed by {_bufferedDataLength} bytes of data");
+                NetUtils.TraceOutput(_connection.TraceWriter, $"PC {_fragmentHeader.PresentationContextID} sending ", _dataTransferPDUHeader);
+                NetUtils.TraceOutput(_connection.TraceWriter, $"PC {_fragmentHeader.PresentationContextID} sending ", _fragmentHeader);
+                _connection.TraceWriter.WriteLine($"PC {_fragmentHeader.PresentationContextID} sending {_bufferedDataLength} bytes of data");
                 _connection.TraceWriter.Flush();
             }
 

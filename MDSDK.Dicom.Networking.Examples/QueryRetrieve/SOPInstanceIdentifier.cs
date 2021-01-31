@@ -4,7 +4,7 @@ using System;
 
 namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
 {
-    public class SOPInstanceQuery : SOPInstanceInfo
+    public class SOPInstanceIdentifier : SOPInstanceInfo
     {
         public QueryRetrieveLevel QueryRetrieveLevel { get; set; } = QueryRetrieveLevel.IMAGE;
 
@@ -14,7 +14,7 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
 
         public string SeriesInstanceUID { get; set; }
 
-        public SOPInstanceQuery(string patientID, string studyInstanceUID, string seriesInstanceUID)
+        public SOPInstanceIdentifier(string patientID, string studyInstanceUID, string seriesInstanceUID)
         {
             PatientID = patientID;
             StudyInstanceUID = studyInstanceUID;
