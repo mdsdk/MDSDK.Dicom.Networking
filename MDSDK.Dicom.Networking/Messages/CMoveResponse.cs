@@ -1,10 +1,22 @@
-// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
+// This is a generated file. Do not modify.
+
+using MDSDK.Dicom.Serialization;
 
 namespace MDSDK.Dicom.Networking.Messages
 {
     [Command(CommandType.C_MOVE_RSP, true)]
-    public sealed class CMoveResponse : Response
+    public class CMoveResponse : IResponse
     {
+        public string AffectedSOPClassUID { get; set; }
+
+        public CommandType CommandField { get; set; }
+
+        public ushort MessageIDBeingRespondedTo { get; set; }
+
+        public ushort CommandDataSetType { get; set; }
+
+        public ushort Status { get; set; }
+
         public ushort NumberOfRemainingSuboperations { get; set; }
 
         public ushort NumberOfCompletedSuboperations { get; set; }

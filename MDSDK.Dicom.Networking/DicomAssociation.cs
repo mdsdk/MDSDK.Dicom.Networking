@@ -29,14 +29,14 @@ namespace MDSDK.Dicom.Networking
         private ushort _requestCounter = 0;
 
         public void SendRequest<TRequest>(byte presentationContextID, TRequest request, CommandIsFollowedByDataSet isFollowedByDataSet) 
-            where TRequest : Request, new()
+            where TRequest : IRequest, new()
         {
             request.MessageID = _requestCounter++;
             _connection.SendCommand(presentationContextID, request, isFollowedByDataSet);
         }
 
         public void SendResponse<TResponse>(byte presentationContextID, TResponse response, ushort requestMessageID,
-            CommandIsFollowedByDataSet isFollowedByDataSet) where TResponse : Response, new()
+            CommandIsFollowedByDataSet isFollowedByDataSet) where TResponse : IResponse, new()
         {
             response.MessageIDBeingRespondedTo = requestMessageID;
             _connection.SendCommand(presentationContextID, response, isFollowedByDataSet);
@@ -47,12 +47,12 @@ namespace MDSDK.Dicom.Networking
             _connection.SendDataSet(presentationContextID, stream =>
             {
                 var presentationContext = PresentationContexts[presentationContextID];
-                DicomSerializer.Serialize<TDataSet>(stream, presentationContext.TransferSyntax, dataSet);
+                DicomSerializer.Serialize<TDataSet>(presentationContext.TransferSyntax, stream, dataSet);
             });
         }
 
         public TResponse ReceiveResponse<TResponse>(byte presentationContextID, ushort requestMessageID)
-            where TResponse : Response, new()
+            where TResponse : IResponse, new()
         {
             var command = _connection.ReceiveCommand(presentationContextID);
             if (command is TResponse response)
@@ -65,7 +65,7 @@ namespace MDSDK.Dicom.Networking
             }
             else
             {
-                throw new IOException($"Expected {Command.GetCommandType<TResponse>()} but got {command.CommandField}");
+                throw new IOException($"Expected {CommandSerialization.GetCommandType<TResponse>()} but got {command.CommandField}");
             }
         }
 
@@ -81,7 +81,7 @@ namespace MDSDK.Dicom.Networking
             ReceiveDataSet(presentationContextID, stream =>
             {
                 var presentationContext = PresentationContexts[presentationContextID];
-                dataSet = DicomSerializer.Deserialize<TDataSet>(stream, presentationContext.TransferSyntax);
+                dataSet = DicomSerializer.Deserialize<TDataSet>(presentationContext.TransferSyntax, stream);
             });
 
             if (_connection.TraceWriter != null)
@@ -92,12 +92,12 @@ namespace MDSDK.Dicom.Networking
             return dataSet;
         }
 
-        public delegate void MessageHandler(DicomAssociation association, byte presentationContextID, Command command, out bool stop);
+        public delegate void MessageHandler(DicomAssociation association, byte presentationContextID, ICommand command, out bool stop);
 
         public void DispatchIncomingMessages(MessageHandler messageHandler)
         {
             var stop = false;
-            while (!stop && _connection.TryReceiveCommand(out byte presentationContextID, out Command command))
+            while (!stop && _connection.TryReceiveCommand(out byte presentationContextID, out ICommand command))
             {
                 messageHandler.Invoke(this, presentationContextID, command, out stop);
             }

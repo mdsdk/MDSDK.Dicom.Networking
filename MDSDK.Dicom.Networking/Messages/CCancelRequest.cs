@@ -3,8 +3,14 @@
 namespace MDSDK.Dicom.Networking.Messages
 {
     [Command(CommandType.C_CANCEL_RQ, false)]
-    public sealed class CCancelRequest : Command
+    public sealed class CCancelRequest : ICommand
     {
+        public uint CommandGroupLength { get; set; }
+
+        public CommandType CommandField { get; set; }
+
         public ushort MessageIDBeingRespondedTo { get; set; }
+
+        public ushort CommandDataSetType { get; set; }
     }
 }

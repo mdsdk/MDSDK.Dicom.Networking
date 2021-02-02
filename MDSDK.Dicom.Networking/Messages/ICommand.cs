@@ -2,10 +2,10 @@
 
 namespace MDSDK.Dicom.Networking.Messages
 {
-    public abstract class Request : Command
+    public interface ICommand
     {
-        internal Request() { }
-
-        public ushort MessageID { get; set; }
+        CommandType CommandField { get; set; }
+        
+        ushort CommandDataSetType { get; set; }
     }
 }

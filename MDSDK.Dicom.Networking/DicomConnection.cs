@@ -31,8 +31,8 @@ namespace MDSDK.Dicom.Networking
             Socket = socket;
             SocketInputStream = new SocketInputStream(socket, cancellationToken);
             SocketOutputStream = new SocketOutputStream(socket, cancellationToken);
-            Input = new BinaryStreamReader(SocketInputStream, ByteOrder.BigEndian);
-            Output = new BinaryStreamWriter(SocketOutputStream, ByteOrder.BigEndian);
+            Input = new BinaryStreamReader(ByteOrder.BigEndian, SocketInputStream);
+            Output = new BinaryStreamWriter(ByteOrder.BigEndian, SocketOutputStream);
         }
 
         public void Dispose()
@@ -177,7 +177,7 @@ namespace MDSDK.Dicom.Networking
             Socket.Shutdown(SocketShutdown.Send);
         }
 
-        public void SendCommand(byte presentationContextID, Command command, CommandIsFollowedByDataSet commandIsFollowedByDataSet) 
+        public void SendCommand(byte presentationContextID, ICommand command, CommandIsFollowedByDataSet commandIsFollowedByDataSet) 
         {
             var commandAttribute = command.GetType().GetCustomAttribute<CommandAttribute>();
             
@@ -191,7 +191,7 @@ namespace MDSDK.Dicom.Networking
 
             using (var stream = new PresentationContextOutputStream(this, presentationContextID, FragmentType.Command))
             {
-                Command.WriteTo(stream, command);
+                CommandSerialization.WriteTo(stream, command);
                 stream.Flush();
             }
         }
@@ -205,14 +205,14 @@ namespace MDSDK.Dicom.Networking
             }
         }
 
-        public bool TryReceiveCommand(out byte presentationContextID, out Command command)
+        public bool TryReceiveCommand(out byte presentationContextID, out ICommand command)
         {
             if (ReadNextPDU(DataUnitType.DataTransferPDU, DataUnitType.ReleaseRequestPDU) is DataTransferPDUHeader)
             {
                 using (var stream = new PresentationContextInputStream(this, FragmentType.Command))
                 {
                     presentationContextID = stream.PresentationContextID;
-                    command = Command.ReadFrom(stream);
+                    command = CommandSerialization.ReadFrom(stream);
                     stream.SkipToEnd();
                     if (TraceWriter != null)
                     {
@@ -229,7 +229,7 @@ namespace MDSDK.Dicom.Networking
             }
         }
 
-        public Command ReceiveCommand(byte presentationContextID)
+        public ICommand ReceiveCommand(byte presentationContextID)
         {
             ReadNextPDU(DataUnitType.DataTransferPDU);
 
@@ -239,7 +239,7 @@ namespace MDSDK.Dicom.Networking
                 {
                     throw new IOException($"Expected PCID {presentationContextID} but got {stream.PresentationContextID}");
                 }
-                var command = Command.ReadFrom(stream);
+                var command = CommandSerialization.ReadFrom(stream);
                 stream.SkipToEnd();
                 if (TraceWriter != null)
                 {

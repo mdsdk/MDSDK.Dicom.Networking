@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BinaryIO\MDSDK.BinaryIO\MDSDK.BinaryIO.csproj" />
-    <ProjectReference Include="..\..\Dicom.Serialization\MDSDK.Dicom.Serialization\MDSDK.Dicom.Serialization.csproj" />
+    <ProjectReference Include="..\..\MDSDK.BinaryIO\MDSDK.BinaryIO\MDSDK.BinaryIO.csproj" />
+    <ProjectReference Include="..\..\MDSDK.Dicom.Serialization\MDSDK.Dicom.Serialization\MDSDK.Dicom.Serialization.csproj" />
     <ProjectReference Include="..\MDSDK.Dicom.Networking\MDSDK.Dicom.Networking.csproj" />
   </ItemGroup>
 

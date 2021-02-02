@@ -40,7 +40,7 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
             association.DispatchIncomingMessages(HandleIncomingMessage);
         }
 
-        private void HandleIncomingMessage(DicomAssociation association, byte presentationContextID, Command command, out bool stop)
+        private void HandleIncomingMessage(DicomAssociation association, byte presentationContextID, ICommand command, out bool stop)
         {
             if (command is CStoreRequest cStoreRequest)
             {
@@ -60,11 +60,11 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
                 {
                     throw new Exception($"Unexpected {cGetResponse} received in presentation context {presentationContextID}");
                 }
-                if (cGetResponse.IsFollowedByDataSet())
+                if (cGetResponse.HasDataSet())
                 {
                     association.ReceiveDataSet(PresentationContextID, stream => { });
                 }
-                stop = !cGetResponse.IsPending();
+                stop = !cGetResponse.StatusIsPending();
             }
             else
             {

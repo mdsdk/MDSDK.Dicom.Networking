@@ -55,7 +55,7 @@ namespace MDSDK.Dicom.Networking.DataUnits
         {
             using (var dataStream = new MemoryStream())
             {
-                var dataOutput = new BinaryStreamWriter(dataStream, output.ByteOrder);
+                var dataOutput = new BinaryStreamWriter(output.ByteOrder, dataStream);
                 dataWriter.Invoke(dataOutput);
                 dataOutput.Flush(FlushMode.Deep);
                 lengthWriter.Invoke(output, dataStream.Length);

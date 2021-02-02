@@ -32,14 +32,14 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
             var infoList = new List<TInfo>();
 
             var cFindResponse = association.ReceiveResponse<CFindResponse>(PresentationContextID, cFindRequest.MessageID);
-            while (cFindResponse.IsPending())
+            while (cFindResponse.StatusIsPending())
             {
                 var info = association.ReceiveDataSet<TInfo>(PresentationContextID);
                 infoList.Add(info);
                 cFindResponse = association.ReceiveResponse<CFindResponse>(PresentationContextID, cFindRequest.MessageID);
             }
 
-            if (!cFindResponse.IsSuccess())
+            if (!cFindResponse.StatusIsSuccess())
             {
                 throw new Exception($"C-FIND SCP returned {cFindResponse.Status}");
             }

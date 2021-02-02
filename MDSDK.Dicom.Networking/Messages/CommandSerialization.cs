@@ -8,17 +8,11 @@ using System.Reflection;
 
 namespace MDSDK.Dicom.Networking.Messages
 {
-    public abstract class Command : CommandHeader
+    internal static class CommandSerialization 
     {
-        public ushort CommandDataSetType { get; set; }
-
-        public bool IsFollowedByDataSet() => CommandDataSetType != 0x0101;
-
-        internal Command() { }
-
         private static readonly DicomSerializer<CommandHeader> CommandHeaderSerializer = DicomSerializer.GetSerializer<CommandHeader>();
 
-        internal static CommandType GetCommandType<TCommand>() where TCommand : Command
+        internal static CommandType GetCommandType<TCommand>() where TCommand : ICommand
         {
             return typeof(TCommand).GetCustomAttribute<CommandAttribute>().CommandType;
         }
@@ -54,9 +48,9 @@ namespace MDSDK.Dicom.Networking.Messages
             };
         }
 
-        public static Command ReadFrom(Stream stream)
+        public static ICommand ReadFrom(Stream stream)
         {
-            var input = new BinaryStreamReader(stream, ByteOrder.LittleEndian);
+            var input = new BinaryStreamReader(ByteOrder.LittleEndian, stream);
 
             var commandGroupLengthTag = input.Read<UInt32>();
             var commandGroupLengthLength = input.Read<UInt32>();
@@ -73,16 +67,16 @@ namespace MDSDK.Dicom.Networking.Messages
 
             input = new BinaryStreamReader(ByteOrder.LittleEndian, data);
 
-            var commandHeaderReader = new DicomStreamReader(input, DicomVRCoding.Implicit);
+            var commandHeaderReader = new DicomStreamReader(DicomVRCoding.Implicit, input);
             var commandHeader = CommandHeaderSerializer.Deserialize(commandHeaderReader);
-            var commandSerializer = GetSerializer((CommandType)commandHeader.CommandField);
+            var commandSerializer = GetSerializer(commandHeader.CommandField);
 
             input = new BinaryStreamReader(ByteOrder.LittleEndian, data);
-            var commandReader = new DicomStreamReader(input, DicomVRCoding.Implicit);
-            return (Command)commandSerializer.Deserialize(commandReader);
+            var commandReader = new DicomStreamReader(DicomVRCoding.Implicit, input);
+            return (ICommand)commandSerializer.Deserialize(commandReader);
         }
 
-        public static void WriteTo(Stream stream, Command command)
+        public static void WriteTo(Stream stream, ICommand command)
         {
             var serializer = GetSerializer(command.CommandField);
 
@@ -91,13 +85,13 @@ namespace MDSDK.Dicom.Networking.Messages
                 throw new Exception($"Could not calculate command group length for {command.CommandField}");
             }
 
-            var output = new BinaryStreamWriter(stream, ByteOrder.LittleEndian);
+            var output = new BinaryStreamWriter(ByteOrder.LittleEndian, stream);
 
             output.Write<UInt32>(0);
             output.Write<UInt32>(4);
             output.Write<UInt32>(commandGroupLength);
 
-            var writer = new DicomStreamWriter(output, DicomVRCoding.Implicit);
+            var writer = new DicomStreamWriter(DicomVRCoding.Implicit, output);
             serializer.Serialize(writer, command);
 
             output.Flush(FlushMode.Shallow);

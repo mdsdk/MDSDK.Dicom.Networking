@@ -5,11 +5,11 @@ VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MDSDK.Dicom.Networking", "MDSDK.Dicom.Networking\MDSDK.Dicom.Networking.csproj", "{B2EA8E41-EC2B-411C-A591-A30AFC65F49D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MDSDK.Dicom.Serialization", "..\Dicom.Serialization\MDSDK.Dicom.Serialization\MDSDK.Dicom.Serialization.csproj", "{FF09056B-D99E-46A2-B506-09A8EE4BD9E5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MDSDK.Dicom.Serialization", "..\MDSDK.Dicom.Serialization\MDSDK.Dicom.Serialization\MDSDK.Dicom.Serialization.csproj", "{FF09056B-D99E-46A2-B506-09A8EE4BD9E5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MDSDK.Dicom.Networking.Examples", "MDSDK.Dicom.Networking.Examples\MDSDK.Dicom.Networking.Examples.csproj", "{5BB1B081-8687-4DED-8357-CE32AE8BA6B4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MDSDK.BinaryIO", "..\BinaryIO\MDSDK.BinaryIO\MDSDK.BinaryIO.csproj", "{9FE80465-B9CA-4A68-95E9-D87E456DAED9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MDSDK.BinaryIO", "..\MDSDK.BinaryIO\MDSDK.BinaryIO\MDSDK.BinaryIO.csproj", "{9FE80465-B9CA-4A68-95E9-D87E456DAED9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7E921E62-6F52-43F5-8541-35E8CDA113F2}"
 	ProjectSection(SolutionItems) = preProject
