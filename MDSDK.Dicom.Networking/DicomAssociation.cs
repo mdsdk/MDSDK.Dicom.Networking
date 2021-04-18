@@ -3,7 +3,6 @@
 using MDSDK.Dicom.Networking.Messages;
 using MDSDK.Dicom.Networking.Net;
 using MDSDK.Dicom.Serialization;
-using MDSDK.Dicom.Serialization.TransferSyntaxes;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,7 +15,7 @@ namespace MDSDK.Dicom.Networking
 
         internal Dictionary<byte, DicomPresentationContext> PresentationContexts { get; } = new();
 
-        public DicomAssociation(DicomConnection connection, Dictionary<byte, TransferSyntax> presentationContextTransferSyntaxes)
+        public DicomAssociation(DicomConnection connection, Dictionary<byte, DicomTransferSyntax> presentationContextTransferSyntaxes)
         {
             _connection = connection;
 

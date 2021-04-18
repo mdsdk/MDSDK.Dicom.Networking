@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
-using MDSDK.Dicom.Serialization.TransferSyntaxes;
+using MDSDK.Dicom.Serialization;
 
 namespace MDSDK.Dicom.Networking
 {
@@ -8,9 +8,9 @@ namespace MDSDK.Dicom.Networking
     {
         public byte PresentationContextID { get; }
 
-        public TransferSyntax TransferSyntax { get; }
+        public DicomTransferSyntax TransferSyntax { get; }
 
-        public DicomPresentationContext(byte presentationContextID, TransferSyntax transferSyntax)
+        public DicomPresentationContext(byte presentationContextID, DicomTransferSyntax transferSyntax)
         {
             PresentationContextID = presentationContextID;
             TransferSyntax = transferSyntax;

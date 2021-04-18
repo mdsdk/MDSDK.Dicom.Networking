@@ -2,7 +2,6 @@
 
 using MDSDK.Dicom.Networking.Net;
 using MDSDK.Dicom.Serialization;
-using MDSDK.Dicom.Serialization.TransferSyntaxes;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,7 +18,7 @@ namespace MDSDK.Dicom.Networking
 
         private List<PresentationContextRequest> _presentationContextRequests = new List<PresentationContextRequest>();
         
-        public byte ProposePresentationContext(DicomUID sopClassUID, params TransferSyntax[] proposedTransferSyntaxes)
+        public byte ProposePresentationContext(DicomUID sopClassUID, params DicomTransferSyntax[] proposedTransferSyntaxes)
         {
             var presentationContextID = 1 + 2 * _presentationContextRequests.Count;
             if (presentationContextID > byte.MaxValue)
@@ -33,7 +32,7 @@ namespace MDSDK.Dicom.Networking
                 AbstractSyntaxName = sopClassUID.UID,
             };
 
-            presentationContextRequest.TransferSyntaxNames.AddRange(proposedTransferSyntaxes.Select(o => o.DicomUID.UID));
+            presentationContextRequest.TransferSyntaxNames.AddRange(proposedTransferSyntaxes.Select(o => o.UID.UID));
 
             _presentationContextRequests.Add(presentationContextRequest);
 
@@ -66,7 +65,7 @@ namespace MDSDK.Dicom.Networking
 
                 var associationResponse = connection.ReceiveAssociationResponse();
 
-                var presentationContextTransferSyntaxes = new Dictionary<byte, TransferSyntax>();
+                var presentationContextTransferSyntaxes = new Dictionary<byte, DicomTransferSyntax>();
 
                 foreach (var presentationContextResponse in associationResponse.PresentationContextResponses)
                 {
@@ -74,8 +73,8 @@ namespace MDSDK.Dicom.Networking
                     
                     if (presentationContextResponse.Result == PresentationContextResponse.ResultCode.Acceptance)
                     {
-                        DicomTransferSyntax.TryLookup(presentationContextResponse.TransferSyntaxName, out TransferSyntax transferSyntax);
-                        presentationContextTransferSyntaxes[presentationContextID] = transferSyntax;
+                        var transferSyntaxUID = new DicomUID(presentationContextResponse.TransferSyntaxName);
+                        presentationContextTransferSyntaxes[presentationContextID] = new DicomTransferSyntax(transferSyntaxUID);
                     }
                 }
 

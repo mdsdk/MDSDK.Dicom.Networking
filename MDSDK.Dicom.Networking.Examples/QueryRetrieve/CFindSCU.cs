@@ -60,9 +60,7 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
                     SOPInstanceUID = sopInstance.SOPInstanceUID
                 });
 
-                var sopClass = DicomUID.TryLookup(sopInstance.SOPClassUID, out DicomUID knownSOPClassUID)
-                    ? knownSOPClassUID.Name
-                    : sopInstance.SOPClassUID;
+                var sopClass = new DicomUID(sopInstance.SOPClassUID);
 
                 Console.WriteLine($">>> SOP Instance: {sopClass} ({sopInstance.SOPInstanceUID})");
             }
