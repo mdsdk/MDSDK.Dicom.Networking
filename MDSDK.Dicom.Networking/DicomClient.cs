@@ -12,7 +12,12 @@ namespace MDSDK.Dicom.Networking
 {
     public class DicomClient
     {
-        public string AETitle { get; set; }
+        public string AETitle { get; }
+
+        public DicomClient(string aeTitle)
+        {
+            AETitle = aeTitle;
+        }
 
         public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
 
@@ -48,7 +53,7 @@ namespace MDSDK.Dicom.Networking
                 throw new InvalidOperationException("Missing presentation context proposals");
             }
 
-            var connection = DicomConnection.Connect(ae.HostNameOrIPAddress, ae.Port, CancellationToken);
+            var connection = DicomConnection.Connect(ae.HostNameOrIPAddress, ae.PortNumber, CancellationToken);
             try
             {
                 connection.TraceWriter = TraceWriter;

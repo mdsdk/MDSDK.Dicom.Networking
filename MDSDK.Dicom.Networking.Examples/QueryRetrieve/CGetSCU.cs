@@ -40,8 +40,9 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
             association.DispatchIncomingMessages(HandleIncomingMessage);
         }
 
-        private void HandleIncomingMessage(DicomAssociation association, byte presentationContextID, ICommand command, out bool stop)
+        private void HandleIncomingMessage(DicomAssociation association, DicomPresentationContext presentationContext, ICommand command, out bool stop)
         {
+            var presentationContextID = presentationContext.PresentationContextID;
             if (command is CStoreRequest cStoreRequest)
             {
                 if (_cStoreSCPS.TryGetValue(presentationContextID, out CStoreSCP cStoreSCP))

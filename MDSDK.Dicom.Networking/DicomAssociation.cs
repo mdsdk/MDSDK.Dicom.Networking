@@ -91,14 +91,19 @@ namespace MDSDK.Dicom.Networking
             return dataSet;
         }
 
-        public delegate void MessageHandler(DicomAssociation association, byte presentationContextID, ICommand command, out bool stop);
+        public delegate void MessageHandler(DicomAssociation association, DicomPresentationContext presentationContext, 
+            ICommand command, out bool stop);
 
         public void DispatchIncomingMessages(MessageHandler messageHandler)
         {
             var stop = false;
             while (!stop && _connection.TryReceiveCommand(out byte presentationContextID, out ICommand command))
             {
-                messageHandler.Invoke(this, presentationContextID, command, out stop);
+                if (!PresentationContexts.TryGetValue(presentationContextID, out DicomPresentationContext presentationContext))
+                {
+                    throw new IOException($"Unknown presentation context ID {presentationContextID} received");
+                }
+                messageHandler.Invoke(this, presentationContext, command, out stop);
             }
         }
 

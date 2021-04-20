@@ -8,14 +8,14 @@ namespace MDSDK.Dicom.Networking
     {
         public string HostNameOrIPAddress { get; }
 
-        public ushort Port { get; }
+        public ushort PortNumber { get; }
 
         public string AETitle { get; }
 
-        public DicomNetworkAddress(string hostNameOrIPAddress, ushort port, string aeTitle)
+        public DicomNetworkAddress(string hostNameOrIPAddress, ushort portNumber, string aeTitle)
         {
             HostNameOrIPAddress = hostNameOrIPAddress;
-            Port = port;
+            PortNumber = portNumber;
             AETitle = aeTitle;
         }
 
@@ -23,16 +23,17 @@ namespace MDSDK.Dicom.Networking
         {
             // AE titles are case sensitive but host names are not
 
-            return HostNameOrIPAddress.Equals(other.HostNameOrIPAddress, StringComparison.InvariantCultureIgnoreCase)
-                && (Port == other.Port)
+            return (other != null)
+                && HostNameOrIPAddress.Equals(other.HostNameOrIPAddress, StringComparison.InvariantCultureIgnoreCase)
+                && PortNumber.Equals(other.PortNumber)
                 && AETitle.Equals(other.AETitle, StringComparison.InvariantCulture);
         }
 
         public override bool Equals(object obj) => (obj is DicomNetworkAddress other) && Equals(other);
 
-        public override int GetHashCode() => Tuple.Create(HostNameOrIPAddress, Port, AETitle).GetHashCode();
+        public override int GetHashCode() => Tuple.Create(HostNameOrIPAddress, PortNumber, AETitle).GetHashCode();
 
-        public override string ToString() => $"{HostNameOrIPAddress}:{Port}/{AETitle}";
+        public override string ToString() => $"{HostNameOrIPAddress}:{PortNumber}/{AETitle}";
 
         public static bool TryParse(string s, out DicomNetworkAddress dicomNetworkAddress)
         {

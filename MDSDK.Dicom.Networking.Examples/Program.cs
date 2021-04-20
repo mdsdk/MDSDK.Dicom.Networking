@@ -54,9 +54,8 @@ namespace MDSDK.Dicom.Networking.Test
 
                 using var stdout = new StreamWriter(Console.OpenStandardOutput());
 
-                var client = new DicomClient
+                var client = new DicomClient("Test")
                 {
-                    AETitle = "Test",
                     CancellationToken = cancellationTokenSource.Token,
                     TraceWriter = stdout
                 };
@@ -80,7 +79,7 @@ namespace MDSDK.Dicom.Networking.Test
                 var sopInstances = new List<SOPInstanceIdentifier>();
 
                 cFindSCU.FindSOPInstances(association, PatientName, sopInstances);
-                sopInstances.Clear();
+                // sopInstances.Clear();
 
                 foreach (var sopInstance in sopInstances)
                 {
