@@ -8,12 +8,12 @@ namespace MDSDK.Dicom.Networking
     {
         public byte PresentationContextID { get; }
 
-        public DicomTransferSyntax TransferSyntax { get; }
+        public DicomUID TransferSyntaxUID { get; }
 
-        public DicomPresentationContext(byte presentationContextID, DicomTransferSyntax transferSyntax)
+        public DicomPresentationContext(byte presentationContextID, DicomUID transferSyntaxUID)
         {
             PresentationContextID = presentationContextID;
-            TransferSyntax = transferSyntax;
+            TransferSyntaxUID = transferSyntaxUID;
         }
     }
 }

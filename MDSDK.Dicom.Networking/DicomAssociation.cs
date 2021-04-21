@@ -15,13 +15,13 @@ namespace MDSDK.Dicom.Networking
 
         internal Dictionary<byte, DicomPresentationContext> PresentationContexts { get; } = new();
 
-        public DicomAssociation(DicomConnection connection, Dictionary<byte, DicomTransferSyntax> presentationContextTransferSyntaxes)
+        public DicomAssociation(DicomConnection connection, Dictionary<byte, DicomUID> presentationContextTransferSyntaxUID)
         {
             _connection = connection;
 
-            foreach (var (presentationContextID, transferSyntax) in presentationContextTransferSyntaxes)
+            foreach (var (presentationContextID, transferSyntaxUID) in presentationContextTransferSyntaxUID)
             {
-                PresentationContexts[presentationContextID] = new DicomPresentationContext(presentationContextID, transferSyntax);
+                PresentationContexts[presentationContextID] = new DicomPresentationContext(presentationContextID, transferSyntaxUID);
             }
         }
 
@@ -46,7 +46,8 @@ namespace MDSDK.Dicom.Networking
             _connection.SendDataSet(presentationContextID, stream =>
             {
                 var presentationContext = PresentationContexts[presentationContextID];
-                DicomSerializer.Serialize<TDataSet>(presentationContext.TransferSyntax, stream, dataSet);
+                var transferSyntax = new DicomTransferSyntax(presentationContext.TransferSyntaxUID);
+                DicomSerializer.Serialize<TDataSet>(transferSyntax, stream, dataSet);
             });
         }
 
@@ -80,7 +81,8 @@ namespace MDSDK.Dicom.Networking
             ReceiveDataSet(presentationContextID, stream =>
             {
                 var presentationContext = PresentationContexts[presentationContextID];
-                dataSet = DicomSerializer.Deserialize<TDataSet>(presentationContext.TransferSyntax, stream);
+                var transferSyntax = new DicomTransferSyntax(presentationContext.TransferSyntaxUID);
+                dataSet = DicomSerializer.Deserialize<TDataSet>(transferSyntax, stream);
             });
 
             if (_connection.TraceWriter != null)

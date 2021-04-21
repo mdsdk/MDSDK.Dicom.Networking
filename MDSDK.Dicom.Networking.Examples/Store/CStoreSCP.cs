@@ -13,7 +13,7 @@ namespace MDSDK.Dicom.Networking.Examples.Store
 
         public CStoreSCP(DicomClient client, DicomUID storageSopClassUID)
         {
-            PresentationContextID = client.ProposePresentationContext(storageSopClassUID, DicomTransferSyntax.ImplicitVRLittleEndian);
+            PresentationContextID = client.ProposePresentationContext(storageSopClassUID, DicomUID.ImplicitVRLittleEndian);
             StorageSOPClassUID = storageSopClassUID;
         }
 

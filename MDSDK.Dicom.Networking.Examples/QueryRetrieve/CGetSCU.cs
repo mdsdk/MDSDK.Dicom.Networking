@@ -17,7 +17,7 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
         public CGetSCU(DicomClient client, params DicomUID[] storageSOPClassUIDs)
         {
             PresentationContextID = client.ProposePresentationContext(DicomUID.PatientRootQueryRetrieveInformationModelGET,
-                DicomTransferSyntax.ImplicitVRLittleEndian);
+                DicomUID.ImplicitVRLittleEndian);
 
             foreach (var storageSOPClassUID in storageSOPClassUIDs)
             {
@@ -30,7 +30,7 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
         {
             var cGetRequest = new CGetRequest
             {
-                AffectedSOPClassUID = DicomUID.PatientRootQueryRetrieveInformationModelGET.UID,
+                AffectedSOPClassUID = DicomUID.PatientRootQueryRetrieveInformationModelGET,
                 Priority = RequestPriority.Medium
             };
 

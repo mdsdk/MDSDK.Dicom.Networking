@@ -14,7 +14,7 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
         public CFindSCU(DicomClient client)
         {
             PresentationContextID = client.ProposePresentationContext(DicomUID.PatientRootQueryRetrieveInformationModelFIND,
-                DicomTransferSyntax.ImplicitVRLittleEndian);
+                DicomUID.ImplicitVRLittleEndian);
         }
 
         private IReadOnlyList<TInfo> PerformCFind<TIdentifier, TInfo>(DicomAssociation association, TIdentifier identifier)
@@ -22,7 +22,7 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
         {
             var cFindRequest = new CFindRequest
             {
-                AffectedSOPClassUID = DicomUID.PatientRootQueryRetrieveInformationModelFIND.UID,
+                AffectedSOPClassUID = DicomUID.PatientRootQueryRetrieveInformationModelFIND,
                 Priority = RequestPriority.Medium
             };
 
@@ -60,7 +60,7 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
                     SOPInstanceUID = sopInstance.SOPInstanceUID
                 });
 
-                var sopClass = new DicomUID(sopInstance.SOPClassUID);
+                var sopClass = (DicomUID)sopInstance.SOPClassUID;
 
                 Console.WriteLine($">>> SOP Instance: {sopClass} ({sopInstance.SOPInstanceUID})");
             }
