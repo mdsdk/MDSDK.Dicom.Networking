@@ -16,16 +16,16 @@ namespace MDSDK.Dicom.Networking.DataUnits.SubItems
 
         public ushort MaximumNumberOperationsPerformed { get; set; }
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            MaximumNumberOperationsInvoked = input.Read<UInt16>();
-            MaximumNumberOperationsPerformed = input.Read<UInt16>();
+            MaximumNumberOperationsInvoked = dataReader.Read<UInt16>();
+            MaximumNumberOperationsPerformed = dataReader.Read<UInt16>();
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            output.Write<UInt16>(MaximumNumberOperationsInvoked);
-            output.Write<UInt16>(MaximumNumberOperationsPerformed);
+            dataWriter.Write<UInt16>(MaximumNumberOperationsInvoked);
+            dataWriter.Write<UInt16>(MaximumNumberOperationsPerformed);
         }
     }
 }

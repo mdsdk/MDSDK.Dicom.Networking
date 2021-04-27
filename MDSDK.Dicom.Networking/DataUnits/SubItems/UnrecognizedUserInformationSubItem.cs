@@ -14,12 +14,12 @@ namespace MDSDK.Dicom.Networking.DataUnits.SubItems
             Debug.Assert(IsUserInformationSubItemType(subItemType));
         }
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            input.SkipRemainingBytes();
+            dataReader.Input.SkipRemainingBytes();
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
             Environment.FailFast("Attempt to send unrecognized user information sub-item");
         }

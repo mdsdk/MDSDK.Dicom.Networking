@@ -17,22 +17,22 @@ namespace MDSDK.Dicom.Networking.DataUnits.PDUs
 
         public byte Reason { get; set; }
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            input.SkipBytes(1);
+            dataReader.Input.SkipBytes(1);
 
-            Result = input.ReadByte();
-            Source = input.ReadByte();
-            Reason = input.ReadByte();
+            Result = dataReader.ReadByte();
+            Source = dataReader.ReadByte();
+            Reason = dataReader.ReadByte();
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            output.WriteZeros(1);
+            dataWriter.Write((byte)0);
 
-            output.WriteByte(Result);
-            output.WriteByte(Source);
-            output.WriteByte(Reason);
+            dataWriter.Write(Result);
+            dataWriter.Write(Source);
+            dataWriter.Write(Reason);
         }
     }
 }

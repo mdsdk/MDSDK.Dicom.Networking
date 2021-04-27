@@ -18,37 +18,37 @@ namespace MDSDK.Dicom.Networking.DataUnits.SubItems
 
         public List<string> RelatedGeneralSOPClassUIDs { get; } = new List<string>();
 
-        private void ReadRelatedGeneralSOPClassUIDs(BinaryStreamReader input)
+        private void ReadRelatedGeneralSOPClassUIDs(BinaryDataReader dataReader)
         {
-            while (!input.AtEnd)
+            while (!dataReader.Input.AtEnd)
             {
-                var relatedGeneralSOPClassUID = Read16BitLengthPrefixedAsciiString(input);
+                var relatedGeneralSOPClassUID = Read16BitLengthPrefixedAsciiString(dataReader);
                 RelatedGeneralSOPClassUIDs.Add(relatedGeneralSOPClassUID);
             }
         }
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            SOPClassUID = Read16BitLengthPrefixedAsciiString(input);
-            ServiceClassUID = Read16BitLengthPrefixedAsciiString(input);
+            SOPClassUID = Read16BitLengthPrefixedAsciiString(dataReader);
+            ServiceClassUID = Read16BitLengthPrefixedAsciiString(dataReader);
 
-            Read16BitLengthPrefixedData(input, () => ReadRelatedGeneralSOPClassUIDs(input));
+            Read16BitLengthPrefixedData(dataReader, () => ReadRelatedGeneralSOPClassUIDs(dataReader));
         }
 
-        private void WriteGeneralSOPClassUIDs(BinaryStreamWriter output)
+        private void WriteGeneralSOPClassUIDs(BinaryDataWriter dataWriter)
         {
             foreach (var relatedSOPClassUID in RelatedGeneralSOPClassUIDs)
             {
-                Write16BitLengthPrefixedAsciiString(output, relatedSOPClassUID);
+                Write16BitLengthPrefixedAsciiString(dataWriter, relatedSOPClassUID);
             }
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            Write16BitLengthPrefixedAsciiString(output, SOPClassUID);
-            Write16BitLengthPrefixedAsciiString(output, ServiceClassUID);
+            Write16BitLengthPrefixedAsciiString(dataWriter, SOPClassUID);
+            Write16BitLengthPrefixedAsciiString(dataWriter, ServiceClassUID);
             
-            WriteLengthPrefixedData(output, Write16BitLength, WriteGeneralSOPClassUIDs);
+            WriteLengthPrefixedData(dataWriter, Write16BitLength, WriteGeneralSOPClassUIDs);
         }
     }
 }

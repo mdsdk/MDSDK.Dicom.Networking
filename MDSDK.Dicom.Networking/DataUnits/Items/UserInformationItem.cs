@@ -15,14 +15,14 @@ namespace MDSDK.Dicom.Networking.DataUnits.Items
 
         public List<SubItem> SubItems { get; } = new List<SubItem>();
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            SubItem.ReadSubItems(input, SubItems);
+            SubItem.ReadSubItems(dataReader, SubItems);
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            WriteDataUnits(output, SubItems);
+            WriteDataUnits(dataWriter, SubItems);
         }
     }
 }

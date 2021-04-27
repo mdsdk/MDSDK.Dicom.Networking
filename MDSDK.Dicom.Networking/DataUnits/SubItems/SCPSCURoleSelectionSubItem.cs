@@ -17,18 +17,18 @@ namespace MDSDK.Dicom.Networking.DataUnits.SubItems
 
         public byte SCPRole { get; set; }
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            SOPClassUID = Read16BitLengthPrefixedAsciiString(input);
-            SCURole = input.ReadByte();
-            SCPRole = input.ReadByte();
+            SOPClassUID = Read16BitLengthPrefixedAsciiString(dataReader);
+            SCURole = dataReader.ReadByte();
+            SCPRole = dataReader.ReadByte();
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            Write16BitLengthPrefixedAsciiString(output, SOPClassUID);
-            output.WriteByte(SCURole);
-            output.WriteByte(SCPRole);
+            Write16BitLengthPrefixedAsciiString(dataWriter, SOPClassUID);
+            dataWriter.Write(SCURole);
+            dataWriter.Write(SCPRole);
         }
     }
 }

@@ -14,21 +14,21 @@ namespace MDSDK.Dicom.Networking.DataUnits.PDUs
 
         public const int Size = 6;
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
             throw new NotSupportedException();
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
             throw new NotSupportedException();
         }
 
-        public new void WriteTo(BinaryStreamWriter output)
+        public new void WriteTo(BinaryDataWriter dataWriter)
         {
-            output.WriteByte((byte)DataUnitType);
-            output.WriteZeros(1);
-            output.Write<UInt32>(Length);
+            dataWriter.Write((byte)DataUnitType);
+            dataWriter.Write((byte)0);
+            dataWriter.Write<UInt32>(Length);
         }
     }
 }

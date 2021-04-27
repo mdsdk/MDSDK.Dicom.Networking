@@ -22,17 +22,17 @@ namespace MDSDK.Dicom.Networking
 
         internal SocketOutputStream SocketOutputStream { get; }
 
-        internal BinaryStreamReader Input { get; }
+        internal BufferedStreamReader Input { get; }
 
-        internal BinaryStreamWriter Output { get; }
+        internal BufferedStreamWriter Output { get; }
 
         private DicomConnection(Socket socket, CancellationToken cancellationToken)
         {
             Socket = socket;
             SocketInputStream = new SocketInputStream(socket, cancellationToken);
             SocketOutputStream = new SocketOutputStream(socket, cancellationToken);
-            Input = new BinaryStreamReader(ByteOrder.BigEndian, SocketInputStream);
-            Output = new BinaryStreamWriter(ByteOrder.BigEndian, SocketOutputStream);
+            Input = new BufferedStreamReader(SocketInputStream);
+            Output = new BufferedStreamWriter(SocketOutputStream);
         }
 
         public void Dispose()
@@ -84,7 +84,8 @@ namespace MDSDK.Dicom.Networking
         private void SendPDU(PDU pdu)
         {
             TraceSending(pdu);
-            pdu.WriteTo(Output);
+            var dataWriter = new BinaryDataWriter(Output, ByteOrder.BigEndian);
+            pdu.WriteTo(dataWriter);
             Output.Flush(FlushMode.Deep);
         }
 
@@ -106,7 +107,11 @@ namespace MDSDK.Dicom.Networking
                     }
                     else
                     {
-                        Input.Read(pdu.Length, () => pdu.ReadContentFrom(Input));
+                        Input.Read(pdu.Length, () =>
+                        {
+                            var dataReader = new BinaryDataReader(Input, ByteOrder.BigEndian);
+                            pdu.ReadContentFrom(dataReader);
+                        });
                     }
                     TraceReceived(pdu);
                     return pdu;
@@ -115,7 +120,11 @@ namespace MDSDK.Dicom.Networking
 
             if (pdu is AbortPDU abortPDU)
             {
-                Input.Read(pdu.Length, () => abortPDU.ReadContentFrom(Input));
+                Input.Read(pdu.Length, () =>
+                {
+                    var dataReader = new BinaryDataReader(Input, ByteOrder.BigEndian);
+                    abortPDU.ReadContentFrom(dataReader);
+                });
                 TraceReceived(pdu);
                 throw new AbortException(abortPDU);
             }
@@ -191,8 +200,9 @@ namespace MDSDK.Dicom.Networking
 
             using (var stream = new PresentationContextOutputStream(this, presentationContextID, FragmentType.Command))
             {
-                CommandSerialization.WriteTo(stream, command);
-                stream.Flush();
+                var output = new BufferedStreamWriter(stream);
+                CommandSerialization.WriteTo(output, command);
+                output.Flush(FlushMode.Deep);
             }
         }
 
@@ -212,7 +222,8 @@ namespace MDSDK.Dicom.Networking
                 using (var stream = new PresentationContextInputStream(this, FragmentType.Command))
                 {
                     presentationContextID = stream.PresentationContextID;
-                    command = CommandSerialization.ReadFrom(stream);
+                    var input = new BufferedStreamReader(stream);
+                    command = CommandSerialization.ReadFrom(input);
                     stream.SkipToEnd();
                     if (TraceWriter != null)
                     {
@@ -239,7 +250,8 @@ namespace MDSDK.Dicom.Networking
                 {
                     throw new IOException($"Expected PCID {presentationContextID} but got {stream.PresentationContextID}");
                 }
-                var command = CommandSerialization.ReadFrom(stream);
+                var input = new BufferedStreamReader(stream);
+                var command = CommandSerialization.ReadFrom(input);
                 stream.SkipToEnd();
                 if (TraceWriter != null)
                 {

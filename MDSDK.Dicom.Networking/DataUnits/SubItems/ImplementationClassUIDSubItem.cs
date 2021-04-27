@@ -13,14 +13,14 @@ namespace MDSDK.Dicom.Networking.DataUnits.SubItems
 
         public byte[] ImplementationClassUID { get; set; }
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            ImplementationClassUID = input.ReadRemainingBytes();
+            ImplementationClassUID = dataReader.Input.ReadRemainingBytes();
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            output.WriteBytes(ImplementationClassUID);
+            dataWriter.Write(ImplementationClassUID);
         }
     }
 }

@@ -2,12 +2,11 @@
 
 using MDSDK.Dicom.Networking.Examples.Echo;
 using MDSDK.Dicom.Networking.Examples.QueryRetrieve;
-using MDSDK.Dicom.Networking.Examples.Store;
 using MDSDK.Dicom.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Text;
 using System.Threading;
 
 namespace MDSDK.Dicom.Networking.Test

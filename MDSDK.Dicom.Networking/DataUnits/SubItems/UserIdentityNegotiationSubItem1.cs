@@ -13,14 +13,14 @@ namespace MDSDK.Dicom.Networking.DataUnits.SubItems
 
         public byte[] ServerResponse { get; set; }
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            ServerResponse = Read16BitLengthPrefixedByteArray(input);
+            ServerResponse = Read16BitLengthPrefixedByteArray(dataReader);
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            Write16BitLengthPrefixedByteArray(output, ServerResponse);
+            Write16BitLengthPrefixedByteArray(dataWriter, ServerResponse);
         }
     }
 }

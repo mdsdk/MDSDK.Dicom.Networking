@@ -14,14 +14,14 @@ namespace MDSDK.Dicom.Networking.DataUnits.SubItems
         {
         }
 
-        internal override long ReadContentLength(BinaryStreamReader input)
+        internal override long ReadContentLength(BinaryDataReader dataReader)
         {
-            return input.Read<UInt16>();
+            return dataReader.Read<UInt16>();
         }
 
-        internal override void WriteContentLength(BinaryStreamWriter output, long length)
+        internal override void WriteContentLength(BinaryDataWriter dataWriter, long length)
         {
-            output.Write<UInt16>(checked((ushort)length));
+            dataWriter.Write<UInt16>(checked((ushort)length));
         }
 
         public static bool IsUserInformationSubItemType(DataUnitType dataUnitType)
@@ -30,56 +30,56 @@ namespace MDSDK.Dicom.Networking.DataUnits.SubItems
                 && (dataUnitType <= DataUnitType.UserInformationSubItemRangeEnd);
         }
 
-        protected static byte[] Read16BitLengthPrefixedByteArray(BinaryStreamReader input)
+        protected static byte[] Read16BitLengthPrefixedByteArray(BinaryDataReader dataReader)
         {
-            var length = input.Read<UInt16>();
-            return input.ReadBytes(length);
+            var length = dataReader.Read<UInt16>();
+            return dataReader.Input.ReadBytes(length);
         }
 
-        protected static void Write16BitLengthPrefixedByteArray(BinaryStreamWriter output, byte[] bytes)
+        protected static void Write16BitLengthPrefixedByteArray(BinaryDataWriter dataWriter, byte[] bytes)
         {
-            output.Write<UInt16>(checked((ushort)bytes.Length));
-            output.WriteBytes(bytes);
+            dataWriter.Write<UInt16>(checked((ushort)bytes.Length));
+            dataWriter.Output.WriteBytes(bytes);
         }
 
-        protected static string Read16BitLengthPrefixedAsciiString(BinaryStreamReader input)
+        protected static string Read16BitLengthPrefixedAsciiString(BinaryDataReader dataReader)
         {
-            var bytes = Read16BitLengthPrefixedByteArray(input);
+            var bytes = Read16BitLengthPrefixedByteArray(dataReader);
             return Encoding.ASCII.GetString(bytes).Trim();
         }
 
-        protected static void Write16BitLengthPrefixedAsciiString(BinaryStreamWriter output, string s)
+        protected static void Write16BitLengthPrefixedAsciiString(BinaryDataWriter dataWriter, string s)
         {
             var bytes = Encoding.ASCII.GetBytes(s);
-            Write16BitLengthPrefixedByteArray(output, bytes);
+            Write16BitLengthPrefixedByteArray(dataWriter, bytes);
         }
 
-        protected static string ReadNonLengthPrefixedAsciiString(BinaryStreamReader input)
+        protected static string ReadNonLengthPrefixedAsciiString(BinaryDataReader dataReader)
         {
-            var bytes = input.ReadRemainingBytes();
+            var bytes = dataReader.Input.ReadRemainingBytes();
             return Encoding.ASCII.GetString(bytes).Trim();
         }
 
-        protected static void WriteNonLengthPrefixedAsciiString(BinaryStreamWriter output, string s)
+        protected static void WriteNonLengthPrefixedAsciiString(BinaryDataWriter dataWriter, string s)
         {
             var bytes = Encoding.ASCII.GetBytes(s);
-            output.WriteBytes(bytes);
+            dataWriter.Write(bytes);
         }
 
-        public static SubItem ReadFrom(BinaryStreamReader input)
+        public static SubItem ReadFrom(BinaryDataReader dataReader)
         {
-            var dataUnitType = (DataUnitType)input.ReadByte();
+            var dataUnitType = (DataUnitType)dataReader.ReadByte();
             var subItem = SubItemFactory.Instance.Create(dataUnitType);
-            input.SkipBytes(1);
-            Read16BitLengthPrefixedData(input, () => subItem.ReadContentFrom(input));
+            dataReader.Input.SkipBytes(1);
+            Read16BitLengthPrefixedData(dataReader, () => subItem.ReadContentFrom(dataReader));
             return subItem;
         }
 
-        public static void ReadSubItems(BinaryStreamReader input, ICollection<SubItem> subItems)
+        public static void ReadSubItems(BinaryDataReader dataReader, ICollection<SubItem> subItems)
         {
-            while (!input.AtEnd)
+            while (!dataReader.Input.AtEnd)
             {
-                var subItem = ReadFrom(input);
+                var subItem = ReadFrom(dataReader);
                 subItems.Add(subItem);
             }
         }

@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace MDSDK.Dicom.Networking.Messages
 {
-    internal static class CommandSerialization 
+    internal static class CommandSerialization
     {
         private static readonly DicomSerializer<CommandHeader> CommandHeaderSerializer = DicomSerializer.GetSerializer<CommandHeader>();
 
@@ -48,53 +48,60 @@ namespace MDSDK.Dicom.Networking.Messages
             };
         }
 
-        public static ICommand ReadFrom(Stream stream)
+        private static CommandHeader DeserializeCommandHeaderFrom(byte[] data)
         {
-            var input = new BinaryStreamReader(ByteOrder.LittleEndian, stream);
+            var input = new BufferedStreamReader(data);
+            var commandHeaderReader = DicomStreamReader.Create(input, DicomUID.ImplicitVRLittleEndian);
+            return CommandHeaderSerializer.Deserialize(commandHeaderReader);
+        }
 
-            var commandGroupLengthTag = input.Read<UInt32>();
-            var commandGroupLengthLength = input.Read<UInt32>();
+        private static ICommand DeserializeCommandFrom(byte[] data)
+        {
+            var commandHeader = DeserializeCommandHeaderFrom(data);
+            var commandSerializer = GetSerializer(commandHeader.CommandField);
+
+            var input = new BufferedStreamReader(data);
+            var commandReader = DicomStreamReader.Create(input, DicomUID.ImplicitVRLittleEndian);
+            return (ICommand)commandSerializer.Deserialize(commandReader);
+        }
+
+        public static ICommand ReadFrom(BufferedStreamReader input)
+        {
+            var dataReader = new BinaryDataReader(input, ByteOrder.LittleEndian);
+
+            var commandGroupLengthTag = dataReader.Read<UInt32>();
+            var commandGroupLengthLength = dataReader.Read<UInt32>();
 
             if ((commandGroupLengthTag != 0) || (commandGroupLengthLength != 4))
             {
                 throw new IOException($"Expected command group length tag/4 but got {commandGroupLengthTag:X8}/{commandGroupLengthLength}");
             }
 
-            var commandGroupLength = input.Read<UInt32>();
+            var commandGroupLength = dataReader.Read<UInt32>();
 
             var data = new byte[commandGroupLength];
-            input.ReadAll(data);
+            dataReader.Read(data);
 
-            input = new BinaryStreamReader(ByteOrder.LittleEndian, data);
-
-            var commandHeaderReader = new DicomStreamReader(DicomVRCoding.Implicit, input);
-            var commandHeader = CommandHeaderSerializer.Deserialize(commandHeaderReader);
-            var commandSerializer = GetSerializer(commandHeader.CommandField);
-
-            input = new BinaryStreamReader(ByteOrder.LittleEndian, data);
-            var commandReader = new DicomStreamReader(DicomVRCoding.Implicit, input);
-            return (ICommand)commandSerializer.Deserialize(commandReader);
+            return DeserializeCommandFrom(data);
         }
 
-        public static void WriteTo(Stream stream, ICommand command)
+        public static void WriteTo(BufferedStreamWriter output, ICommand command)
         {
             var serializer = GetSerializer(command.CommandField);
 
-            if (!serializer.TryGetSerializedLength(command, DicomVRCoding.Implicit, out uint commandGroupLength))
+            if (!serializer.TryGetSerializedLength(command, DicomVRCoding.Implicit, out long commandGroupLength))
             {
                 throw new Exception($"Could not calculate command group length for {command.CommandField}");
             }
 
-            var output = new BinaryStreamWriter(ByteOrder.LittleEndian, stream);
+            var dataWriter = new BinaryDataWriter(output, ByteOrder.LittleEndian);
 
-            output.Write<UInt32>(0);
-            output.Write<UInt32>(4);
-            output.Write<UInt32>(commandGroupLength);
+            dataWriter.Write<UInt32>(0);
+            dataWriter.Write<UInt32>(4);
+            dataWriter.Write<UInt32>(checked((uint)commandGroupLength));
 
-            var writer = new DicomStreamWriter(DicomVRCoding.Implicit, output);
-            serializer.Serialize(writer, command);
-
-            output.Flush(FlushMode.Shallow);
+            var commandWriter = DicomStreamWriter.Create(output, DicomUID.ImplicitVRLittleEndian);
+            serializer.Serialize(commandWriter, command);
         }
     }
 }

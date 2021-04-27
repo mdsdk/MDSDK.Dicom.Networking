@@ -13,14 +13,14 @@ namespace MDSDK.Dicom.Networking.DataUnits.Items
 
         public byte[] ApplicationContextName { get; set; }
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            ApplicationContextName = input.ReadRemainingBytes();
+            ApplicationContextName = dataReader.Input.ReadRemainingBytes();
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            output.WriteBytes(ApplicationContextName);
+            dataWriter.Output.WriteBytes(ApplicationContextName);
         }
     }
 }

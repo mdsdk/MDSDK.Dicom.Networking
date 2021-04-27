@@ -72,8 +72,9 @@ namespace MDSDK.Dicom.Networking.Net
                 _connection.TraceWriter.Flush();
             }
 
-            _dataTransferPDUHeader.WriteTo(_connection.Output);
-            _fragmentHeader.WriteTo(_connection.Output);
+            var dataWriter = new BinaryDataWriter(_connection.Output, ByteOrder.BigEndian);
+            _dataTransferPDUHeader.WriteTo(dataWriter);
+            _fragmentHeader.WriteTo(dataWriter);
             _connection.Output.WriteBytes(_dataBuffer.AsSpan(0, _bufferedDataLength));
             _connection.Output.Flush(isLastFragment ? FlushMode.Deep : FlushMode.Shallow);
 

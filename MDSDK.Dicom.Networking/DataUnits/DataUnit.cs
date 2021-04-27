@@ -4,7 +4,6 @@ using MDSDK.BinaryIO;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Xml.Linq;
 
 namespace MDSDK.Dicom.Networking.DataUnits
 {
@@ -17,57 +16,57 @@ namespace MDSDK.Dicom.Networking.DataUnits
             DataUnitType = dataUnitType;
         }
 
-        internal abstract long ReadContentLength(BinaryStreamReader input);
+        internal abstract long ReadContentLength(BinaryDataReader dataReader);
 
-        internal abstract void WriteContentLength(BinaryStreamWriter output, long length);
+        internal abstract void WriteContentLength(BinaryDataWriter dataWriter, long length);
 
-        public abstract void ReadContentFrom(BinaryStreamReader input);
+        public abstract void ReadContentFrom(BinaryDataReader dataReader);
 
-        public abstract void WriteContentTo(BinaryStreamWriter output);
+        public abstract void WriteContentTo(BinaryDataWriter dataWriter);
 
-        protected static void WriteDataUnits<T>(BinaryStreamWriter output, IReadOnlyList<T> dataUnits)
+        protected static void WriteDataUnits<T>(BinaryDataWriter dataWriter, IReadOnlyList<T> dataUnits)
             where T : DataUnit
         {
             foreach (var dataUnit in dataUnits)
             {
-                dataUnit.WriteTo(output);
+                dataUnit.WriteTo(dataWriter);
             }
         }
 
-        protected static void Read16BitLengthPrefixedData(BinaryStreamReader input, Action readAction)
+        protected static void Read16BitLengthPrefixedData(BinaryDataReader dataReader, Action readAction)
         {
-            var length = input.Read<UInt16>();
-            input.Read(length, readAction);
+            var length = dataReader.Read<UInt16>();
+            dataReader.Input.Read(length, readAction);
         }
 
-        protected static void Write16BitLength(BinaryStreamWriter output, long length)
+        protected static void Write16BitLength(BinaryDataWriter dataWriter, long length)
         {
-            output.Write<UInt16>(checked((ushort)length));
+            dataWriter.Write<UInt16>(checked((ushort)length));
         }
 
-        protected static void Write32BitLength(BinaryStreamWriter output, long length)
+        protected static void Write32BitLength(BinaryDataWriter dataWriter, long length)
         {
-            output.Write<UInt32>(checked((uint)length));
+            dataWriter.Write<UInt32>(checked((uint)length));
         }
 
-        protected static void WriteLengthPrefixedData(BinaryStreamWriter output, Action<BinaryStreamWriter, long> lengthWriter,
-            Action<BinaryStreamWriter> dataWriter)
+        protected static void WriteLengthPrefixedData(BinaryDataWriter dataWriter, Action<BinaryDataWriter, long> lengthWriter,
+            Action<BinaryDataWriter> writeDataAction)
         {
             using (var dataStream = new MemoryStream())
             {
-                var dataOutput = new BinaryStreamWriter(output.ByteOrder, dataStream);
-                dataWriter.Invoke(dataOutput);
-                dataOutput.Flush(FlushMode.Deep);
-                lengthWriter.Invoke(output, dataStream.Length);
-                output.WriteBytes(dataStream.GetBuffer().AsSpan(0, checked((int)dataStream.Length)));
+                var dataOutput = new BufferedStreamWriter(dataStream);
+                writeDataAction.Invoke(new BinaryDataWriter(dataOutput, ByteOrder.BigEndian));
+                dataOutput.Flush(FlushMode.Shallow);
+                lengthWriter.Invoke(dataWriter, dataStream.Length);
+                dataWriter.Write(dataStream.GetBuffer().AsSpan(0, checked((int)dataStream.Length)));
             }
         }
 
-        internal void WriteTo(BinaryStreamWriter output)
+        internal void WriteTo(BinaryDataWriter dataWriter)
         {
-            output.WriteByte((byte)DataUnitType);
-            output.WriteByte(0);
-            WriteLengthPrefixedData(output, WriteContentLength, WriteContentTo);
+            dataWriter.Write((byte)DataUnitType);
+            dataWriter.Write((byte)0);
+            WriteLengthPrefixedData(dataWriter, WriteContentLength, WriteContentTo);
         }
     }
 }

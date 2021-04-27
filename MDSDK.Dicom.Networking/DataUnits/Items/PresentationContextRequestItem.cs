@@ -17,18 +17,18 @@ namespace MDSDK.Dicom.Networking.DataUnits.Items
 
         public List<SubItem> SubItems { get; } = new List<SubItem>();
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            PresentationContextID = input.ReadByte();
-            input.SkipBytes(3);
-            SubItem.ReadSubItems(input, SubItems);
+            PresentationContextID = dataReader.ReadByte();
+            dataReader.Input.SkipBytes(3);
+            SubItem.ReadSubItems(dataReader, SubItems);
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            output.WriteByte(PresentationContextID);
-            output.WriteZeros(3);
-            WriteDataUnits(output, SubItems);
+            dataWriter.Write(PresentationContextID);
+            dataWriter.WriteZeros(3);
+            WriteDataUnits(dataWriter, SubItems);
         }
     }
 }

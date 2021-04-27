@@ -36,7 +36,8 @@ namespace MDSDK.Dicom.Networking.Net
                 throw new Exception("Logic error");
             }
 
-            var fragmentHeader = FragmentHeader.ReadFrom(_connection.Input);
+            var dataReader = new BinaryDataReader(_connection.Input, ByteOrder.BigEndian);
+            var fragmentHeader = FragmentHeader.ReadFrom(dataReader);
 
             if (_connection.TraceWriter != null)
             {

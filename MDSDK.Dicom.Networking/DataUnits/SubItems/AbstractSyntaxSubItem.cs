@@ -13,14 +13,14 @@ namespace MDSDK.Dicom.Networking.DataUnits.SubItems
 
         public string AbstractSyntaxName { get; set; }
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            AbstractSyntaxName = ReadNonLengthPrefixedAsciiString(input);
+            AbstractSyntaxName = ReadNonLengthPrefixedAsciiString(dataReader);
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            WriteNonLengthPrefixedAsciiString(output, AbstractSyntaxName);
+            WriteNonLengthPrefixedAsciiString(dataWriter, AbstractSyntaxName);
         }
     }
 }

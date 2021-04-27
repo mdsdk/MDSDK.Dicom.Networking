@@ -14,26 +14,27 @@ namespace MDSDK.Dicom.Networking.DataUnits.PDUs
         {
         }
 
-        internal override long ReadContentLength(BinaryStreamReader input)
+        internal override long ReadContentLength(BinaryDataReader dataReader)
         {
-            return input.Read<UInt32>();
+            return dataReader.Read<UInt32>();
         }
 
-        internal override void WriteContentLength(BinaryStreamWriter output, long length)
+        internal override void WriteContentLength(BinaryDataWriter dataWriter, long length)
         {
-            output.Write<UInt32>(checked((uint)length));
+            dataWriter.Write(checked((uint)length));
         }
 
-        public static PDU ReadHeaderFrom(BinaryStreamReader input)
+        public static PDU ReadHeaderFrom(BufferedStreamReader input)
         {
-            var dataUnitType = (DataUnitType)input.ReadByte();
+            var dataReader = new BinaryDataReader(input, ByteOrder.BigEndian);
+            var dataUnitType = (DataUnitType)dataReader.ReadByte();
             var pdu = PDUFactory.Instance.Create(dataUnitType);
-            input.SkipBytes(1);
-            pdu.Length = input.Read<UInt32>();
+            dataReader.Input.SkipBytes(1);
+            pdu.Length = dataReader.Read<UInt32>();
             return pdu;
         }
 
-        public static void ReadFrom(BinaryStreamReader input, Action<PDU> readAction)
+        public static void ReadFrom(BufferedStreamReader input, Action<PDU> readAction)
         {
             var pdu = ReadHeaderFrom(input);
             input.Read(pdu.Length, () => readAction.Invoke(pdu));

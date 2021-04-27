@@ -11,14 +11,14 @@ namespace MDSDK.Dicom.Networking.DataUnits.PDUs
         {
         }
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            input.SkipBytes(4);
+            dataReader.Input.SkipBytes(4);
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            output.WriteZeros(4);
+            dataWriter.WriteZeros(4);
         }
     }
 }

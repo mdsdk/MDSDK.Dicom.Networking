@@ -40,9 +40,9 @@ namespace MDSDK.Dicom.Networking.Net
             }
         }
 
-        public static FragmentHeader ReadFrom(BinaryStreamReader input)
+        public static FragmentHeader ReadFrom(BinaryDataReader dataReader)
         {
-            var length = input.Read<UInt32>();
+            var length = dataReader.Read<UInt32>();
             if (length < 2)
             {
                 throw new IOException("Invalid DICOM PDV length");
@@ -50,16 +50,16 @@ namespace MDSDK.Dicom.Networking.Net
             return new FragmentHeader
             {
                 Length = length,
-                PresentationContextID = input.ReadByte(),
-                MessageControlHeader = (MessageControlHeader)input.ReadByte()
+                PresentationContextID = dataReader.ReadByte(),
+                MessageControlHeader = (MessageControlHeader)dataReader.ReadByte()
             };
         }
 
-        public void WriteTo(BinaryStreamWriter output)
+        public void WriteTo(BinaryDataWriter dataWriter)
         {
-            output.Write<UInt32>(Length);
-            output.WriteByte(PresentationContextID);
-            output.WriteByte((byte)MessageControlHeader);
+            dataWriter.Write<UInt32>(Length);
+            dataWriter.Write(PresentationContextID);
+            dataWriter.Write((byte)MessageControlHeader);
         }
     }
 }

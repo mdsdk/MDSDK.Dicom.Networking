@@ -19,20 +19,20 @@ namespace MDSDK.Dicom.Networking.DataUnits.SubItems
 
         public byte[] SecondaryField { get; set; }
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            UserIdentityType = input.ReadByte();
-            PositiveResponseRequested = input.ReadByte();
-            PrimaryField = Read16BitLengthPrefixedByteArray(input);
-            SecondaryField = Read16BitLengthPrefixedByteArray(input);
+            UserIdentityType = dataReader.ReadByte();
+            PositiveResponseRequested = dataReader.ReadByte();
+            PrimaryField = Read16BitLengthPrefixedByteArray(dataReader);
+            SecondaryField = Read16BitLengthPrefixedByteArray(dataReader);
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            output.WriteByte(UserIdentityType);
-            output.WriteByte(PositiveResponseRequested);
-            Write16BitLengthPrefixedByteArray(output, PrimaryField);
-            Write16BitLengthPrefixedByteArray(output, SecondaryField);
+            dataWriter.Write(UserIdentityType);
+            dataWriter.Write(PositiveResponseRequested);
+            Write16BitLengthPrefixedByteArray(dataWriter, PrimaryField);
+            Write16BitLengthPrefixedByteArray(dataWriter, SecondaryField);
         }
     }
 }

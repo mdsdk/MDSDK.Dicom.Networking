@@ -24,33 +24,33 @@ namespace MDSDK.Dicom.Networking.DataUnits.PDUs
 
         public List<Item> Items { get; } = new List<Item>();
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            var protocolVersion = input.Read<UInt16>();
+            var protocolVersion = dataReader.Read<UInt16>();
 
             if ((protocolVersion & 1) == 0)
             {
                 throw new NotSupportedException($"Unsupported protocol version {protocolVersion}");
             }
 
-            input.SkipBytes(2);
-            input.ReadAll(CopiedFromAssociateRequestPDU_1);
-            input.ReadAll(CopiedFromAssociateRequestPDU_2);
-            input.ReadAll(CopiedFromAssociateRequestPDU_3);
+            dataReader.Input.SkipBytes(2);
+            dataReader.Read(CopiedFromAssociateRequestPDU_1);
+            dataReader.Read(CopiedFromAssociateRequestPDU_2);
+            dataReader.Read(CopiedFromAssociateRequestPDU_3);
 
-            Item.ReadItems(input, Items);
+            Item.ReadItems(dataReader, Items);
         }
         
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            output.Write<UInt16>(ProtocolVersion);
+            dataWriter.Write<UInt16>(ProtocolVersion);
 
-            output.WriteZeros(2);
-            output.WriteBytes(CopiedFromAssociateRequestPDU_1);
-            output.WriteBytes(CopiedFromAssociateRequestPDU_2);
-            output.WriteBytes(CopiedFromAssociateRequestPDU_3);
+            dataWriter.WriteZeros(2);
+            dataWriter.Write(CopiedFromAssociateRequestPDU_1);
+            dataWriter.Write(CopiedFromAssociateRequestPDU_2);
+            dataWriter.Write(CopiedFromAssociateRequestPDU_3);
 
-            WriteDataUnits(output, Items);
+            WriteDataUnits(dataWriter, Items);
         }
     }
 }

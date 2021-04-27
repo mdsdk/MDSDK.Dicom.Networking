@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
+using MDSDK.BinaryIO;
 using MDSDK.Dicom.Networking.Messages;
 using MDSDK.Dicom.Networking.Net;
 using MDSDK.Dicom.Serialization;
@@ -46,8 +47,8 @@ namespace MDSDK.Dicom.Networking
             _connection.SendDataSet(presentationContextID, stream =>
             {
                 var presentationContext = PresentationContexts[presentationContextID];
-                var transferSyntax = new DicomTransferSyntax(presentationContext.TransferSyntaxUID);
-                DicomSerializer.Serialize<TDataSet>(transferSyntax, stream, dataSet);
+                var output = new BufferedStreamWriter(stream);
+                DicomSerializer.Serialize<TDataSet>(output, presentationContext.TransferSyntaxUID, dataSet);
             });
         }
 
@@ -81,8 +82,8 @@ namespace MDSDK.Dicom.Networking
             ReceiveDataSet(presentationContextID, stream =>
             {
                 var presentationContext = PresentationContexts[presentationContextID];
-                var transferSyntax = new DicomTransferSyntax(presentationContext.TransferSyntaxUID);
-                dataSet = DicomSerializer.Deserialize<TDataSet>(transferSyntax, stream);
+                var input = new BufferedStreamReader(stream);
+                dataSet = DicomSerializer.Deserialize<TDataSet>(input, presentationContext.TransferSyntaxUID);
             });
 
             if (_connection.TraceWriter != null)

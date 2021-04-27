@@ -18,31 +18,31 @@ namespace MDSDK.Dicom.Networking.DataUnits.Items
 
         public TransferSyntaxSubItem TransferSyntaxSubItem { get; set; }
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            PresentationContextID = input.ReadByte();
-            input.SkipBytes(1);
-            Result = input.ReadByte();
-            input.SkipBytes(1);
+            PresentationContextID = dataReader.ReadByte();
+            dataReader.Input.SkipBytes(1);
+            Result = dataReader.ReadByte();
+            dataReader.Input.SkipBytes(1);
 
             if (Result == 0)
             {
-                TransferSyntaxSubItem = (TransferSyntaxSubItem)SubItem.ReadFrom(input);
+                TransferSyntaxSubItem = (TransferSyntaxSubItem)SubItem.ReadFrom(dataReader);
             }
             
-            input.SkipRemainingBytes();
+            dataReader.Input.SkipRemainingBytes();
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            output.WriteByte(PresentationContextID);
-            output.WriteZeros(1);
-            output.WriteByte(Result);
-            output.WriteZeros(1);
+            dataWriter.Write(PresentationContextID);
+            dataWriter.Write((byte)0);
+            dataWriter.Write(Result);
+            dataWriter.Write((byte)0);
 
             if (Result == 0)
             {
-                TransferSyntaxSubItem.WriteTo(output);
+                TransferSyntaxSubItem.WriteTo(dataWriter);
             }
         }
     }

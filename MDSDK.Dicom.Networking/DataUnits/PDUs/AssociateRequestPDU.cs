@@ -24,33 +24,33 @@ namespace MDSDK.Dicom.Networking.DataUnits.PDUs
 
         public List<Item> Items { get; } = new List<Item>();
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            var protocolVersion = input.Read<UInt16>();
+            var protocolVersion = dataReader.Read<UInt16>();
             
             if ((protocolVersion & 1) == 0)
             {
                 throw new NotSupportedException($"Unsupported protocol version {protocolVersion}");
             }
 
-            input.SkipBytes(2);
-            input.ReadAll(CalledAETitle);
-            input.ReadAll(CallingAETitle);
-            input.ReadAll(Reserved);
+            dataReader.Input.SkipBytes(2);
+            dataReader.Read(CalledAETitle);
+            dataReader.Read(CallingAETitle);
+            dataReader.Read(Reserved);
 
-            Item.ReadItems(input, Items);
+            Item.ReadItems(dataReader, Items);
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            output.Write<UInt16>(ProtocolVersion);
+            dataWriter.Write<UInt16>(ProtocolVersion);
 
-            output.WriteZeros(2);
-            output.WriteBytes(CalledAETitle);
-            output.WriteBytes(CallingAETitle);
-            output.WriteBytes(Reserved);
+            dataWriter.WriteZeros(2);
+            dataWriter.Write(CalledAETitle);
+            dataWriter.Write(CallingAETitle);
+            dataWriter.Write(Reserved);
 
-            WriteDataUnits(output, Items);
+            WriteDataUnits(dataWriter, Items);
         }
     }
 }

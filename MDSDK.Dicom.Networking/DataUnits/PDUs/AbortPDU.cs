@@ -15,20 +15,20 @@ namespace MDSDK.Dicom.Networking.DataUnits.PDUs
 
         public byte Reason { get; set; }
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            input.SkipBytes(2);
+            dataReader.Input.SkipBytes(2);
 
-            Source = input.ReadByte();
-            Reason = input.ReadByte();
+            Source = dataReader.ReadByte();
+            Reason = dataReader.ReadByte();
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            output.WriteZeros(2);
+            dataWriter.WriteZeros(2);
 
-            output.WriteByte(Source);
-            output.WriteByte(Reason);
+            dataWriter.Write(Source);
+            dataWriter.Write(Reason);
         }
     }
 }

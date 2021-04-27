@@ -15,16 +15,16 @@ namespace MDSDK.Dicom.Networking.DataUnits.SubItems
 
         public byte[] ServiceClassApplictionInformation { get; set; }
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            SOPClassUID = Read16BitLengthPrefixedAsciiString(input);
-            ServiceClassApplictionInformation = input.ReadRemainingBytes();
+            SOPClassUID = Read16BitLengthPrefixedAsciiString(dataReader);
+            ServiceClassApplictionInformation = dataReader.Input.ReadRemainingBytes();
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            Write16BitLengthPrefixedAsciiString(output, SOPClassUID);
-            output.WriteBytes(ServiceClassApplictionInformation);
+            Write16BitLengthPrefixedAsciiString(dataWriter, SOPClassUID);
+            dataWriter.Output.WriteBytes(ServiceClassApplictionInformation);
         }
     }
 }

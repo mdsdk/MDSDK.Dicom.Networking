@@ -13,30 +13,30 @@ namespace MDSDK.Dicom.Networking.DataUnits.Items
         {
         }
 
-        internal override long ReadContentLength(BinaryStreamReader input)
+        internal override long ReadContentLength(BinaryDataReader dataReader)
         {
-            return input.Read<UInt16>();
+            return dataReader.Read<UInt16>();
         }
 
-        internal override void WriteContentLength(BinaryStreamWriter output, long length)
+        internal override void WriteContentLength(BinaryDataWriter dataWriter, long length)
         {
-            output.Write<UInt16>(checked((ushort)length));
+            dataWriter.Write<UInt16>(checked((ushort)length));
         }
 
-        public static Item ReadFrom(BinaryStreamReader input)
+        public static Item ReadFrom(BinaryDataReader dataReader)
         {
-            var dataUnitType = (DataUnitType)input.ReadByte();
+            var dataUnitType = (DataUnitType)dataReader.ReadByte();
             var item = ItemFactory.Instance.Create(dataUnitType);
-            input.SkipBytes(1);
-            Read16BitLengthPrefixedData(input, () => item.ReadContentFrom(input));
+            dataReader.Input.SkipBytes(1);
+            Read16BitLengthPrefixedData(dataReader, () => item.ReadContentFrom(dataReader));
             return item;
         }
 
-        public static void ReadItems(BinaryStreamReader input, ICollection<Item> items)
+        public static void ReadItems(BinaryDataReader dataReader, ICollection<Item> items)
         {
-            while (!input.AtEnd)
+            while (!dataReader.Input.AtEnd)
             {
-                var item = ReadFrom(input);
+                var item = ReadFrom(dataReader);
                 items.Add(item);
             }
         }

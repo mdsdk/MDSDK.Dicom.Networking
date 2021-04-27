@@ -14,14 +14,14 @@ namespace MDSDK.Dicom.Networking.DataUnits.SubItems
 
         public uint MaximumLength { get; set; }
 
-        public override void ReadContentFrom(BinaryStreamReader input)
+        public override void ReadContentFrom(BinaryDataReader dataReader)
         {
-            MaximumLength = input.Read<UInt32>();
+            MaximumLength = dataReader.Read<UInt32>();
         }
 
-        public override void WriteContentTo(BinaryStreamWriter output)
+        public override void WriteContentTo(BinaryDataWriter dataWriter)
         {
-            output.Write<UInt32>(MaximumLength);
+            dataWriter.Write<UInt32>(MaximumLength);
         }
     }
 }
