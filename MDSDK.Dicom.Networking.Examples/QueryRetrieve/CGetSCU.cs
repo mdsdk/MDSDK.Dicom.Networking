@@ -16,8 +16,8 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
 
         public CGetSCU(DicomClient client, params DicomUID[] storageSOPClassUIDs)
         {
-            PresentationContextID = client.ProposePresentationContext(DicomUID.PatientRootQueryRetrieveInformationModelGET,
-                DicomUID.ImplicitVRLittleEndian);
+            PresentationContextID = client.ProposePresentationContext(DicomUID.SOPClass.PatientRootQueryRetrieveInformationModelGet,
+                DicomUID.TransferSyntax.ImplicitVRLittleEndian);
 
             foreach (var storageSOPClassUID in storageSOPClassUIDs)
             {
@@ -30,19 +30,17 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
         {
             var cGetRequest = new CGetRequest
             {
-                AffectedSOPClassUID = DicomUID.PatientRootQueryRetrieveInformationModelGET,
+                AffectedSOPClassUID = DicomUID.SOPClass.PatientRootQueryRetrieveInformationModelGet,
                 Priority = RequestPriority.Medium
             };
 
-            association.SendRequest(PresentationContextID, cGetRequest, CommandIsFollowedByDataSet.Yes);
-            association.SendDataSet(PresentationContextID, query);
-
-            association.DispatchIncomingMessages(HandleIncomingMessage);
+            association.SendRequest(PresentationContextID, cGetRequest, query);
+            association.ReceiveCommands(HandleCommand);
         }
 
-        private void HandleIncomingMessage(DicomAssociation association, DicomPresentationContext presentationContext, ICommand command, out bool stop)
+        private void HandleCommand(DicomAssociation association, byte presentationContextID, DicomUID transferSyntaxUID, 
+            ICommand command, out bool stop)
         {
-            var presentationContextID = presentationContext.PresentationContextID;
             if (command is CStoreRequest cStoreRequest)
             {
                 if (_cStoreSCPS.TryGetValue(presentationContextID, out CStoreSCP cStoreSCP))
@@ -61,9 +59,9 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
                 {
                     throw new Exception($"Unexpected {cGetResponse} received in presentation context {presentationContextID}");
                 }
-                if (cGetResponse.HasDataSet())
+                if (cGetResponse.IsFollowedByDataSet())
                 {
-                    association.ReceiveDataSet(PresentationContextID, stream => { });
+                    association.ReceiveDataSet(cGetResponse, PresentationContextID, stream => { });
                 }
                 stop = !cGetResponse.StatusIsPending();
             }

@@ -9,12 +9,9 @@ namespace MDSDK.Dicom.Networking.Messages
     {
         public CommandType CommandType { get; }
 
-        public bool HasDataSet { get; }
-
-        public CommandAttribute(CommandType commandType, bool hasDataSet)
+        public CommandAttribute(CommandType commandType)
         {
             CommandType = commandType;
-            HasDataSet = hasDataSet;
         }
     }
 }

@@ -5,7 +5,7 @@ using MDSDK.Dicom.Networking.DataUnits.SubItems;
 
 namespace MDSDK.Dicom.Networking.Net
 {
-    public class PresentationContextResponse
+    internal class PresentationContextResponse
     {
         public byte PresentationContextID { get; set; }
 

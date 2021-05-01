@@ -13,8 +13,8 @@ namespace MDSDK.Dicom.Networking.Examples.Echo
 
         public CEchoSCU(DicomClient client)
         {
-            PresentationContextID = client.ProposePresentationContext(DicomUID.VerificationSOPClass,
-                DicomUID.ImplicitVRLittleEndian);
+            PresentationContextID = client.ProposePresentationContext(DicomUID.SOPClass.Verification,
+                DicomUID.TransferSyntax.ImplicitVRLittleEndian);
         }
 
         public void Ping(DicomAssociation association)
@@ -23,11 +23,11 @@ namespace MDSDK.Dicom.Networking.Examples.Echo
             
             var cEchoRequest = new CEchoRequest
             {
-                AffectedSOPClassUID = DicomUID.VerificationSOPClass
+                AffectedSOPClassUID = DicomUID.SOPClass.Verification
             };
 
-            association.SendRequest(PresentationContextID, cEchoRequest, CommandIsFollowedByDataSet.No);
-
+            association.SendRequest(PresentationContextID, cEchoRequest);
+            
             var cEchoResponse = association.ReceiveResponse<CEchoResponse>(PresentationContextID, cEchoRequest.MessageID);
 
             Console.WriteLine($"C-ECHO status = {cEchoResponse.Status}");

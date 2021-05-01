@@ -1,11 +1,13 @@
 // This is a generated file. Do not modify.
 
+#pragma warning disable 1591
+
 using MDSDK.Dicom.Serialization;
 
 namespace MDSDK.Dicom.Networking.Messages
 {
-    [Command(CommandType.N_CREATE_RSP, true)]
-    public class NCreateResponse : IResponse
+    [Command(CommandType.N_CREATE_RSP)]
+    public class NCreateResponse : IResponse, IMayHaveDataSet
     {
         public string AffectedSOPClassUID { get; set; }
 
@@ -20,3 +22,5 @@ namespace MDSDK.Dicom.Networking.Messages
         public string AffectedSOPInstanceUID { get; set; }
     }
 }
+
+#pragma warning restore 1591

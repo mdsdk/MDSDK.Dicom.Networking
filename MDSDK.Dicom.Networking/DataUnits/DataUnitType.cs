@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Networking.DataUnits
 {
-    public enum DataUnitType
+    internal enum DataUnitType
     {
         // PDU types defined in part 8
         AssociateRequestPDU = 0x01,

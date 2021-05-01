@@ -9,7 +9,7 @@ using System.Text;
 
 namespace MDSDK.Dicom.Networking.Net
 {
-    public sealed class AssociationRequest
+    internal sealed class AssociationRequest
     {
         public string CalledAETitle { get; set; }
 

@@ -2,5 +2,10 @@
 
 namespace MDSDK.Dicom.Networking.Messages
 {
-    public enum CommandIsFollowedByDataSet { Yes, No }
+    internal enum IsFollowedByDataSet
+    {
+        Yes,
+        No,
+        Maybe
+    }
 }

@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MDSDK.Dicom.Networking</name>
+    </assembly>
+    <members>
+        <member name="T:MDSDK.Dicom.Networking.DicomAssociation">
+            <summary>An association between two DICOM application entities</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomAssociation.SendRequest``1(System.Byte,``0)">
+            <summary>Sends a request command using the given presentation context</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomAssociation.SendRequest``1(System.Byte,``0,System.Action{System.IO.Stream})">
+            <summary>Sends a request command and its associated data set using the given presentation context</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomAssociation.SendRequest``2(System.Byte,``0,``1)">
+            <summary>Sends a request command and its associated data set using the given presentation context</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomAssociation.SendResponse``1(System.Byte,``0,System.UInt16)">
+            <summary>Sends a response command using the given presentation context</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomAssociation.SendResponse``1(System.Byte,``0,System.UInt16,System.Action{System.IO.Stream})">
+            <summary>Sends a response command and its associated data set using the given presentation context</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomAssociation.SendResponse``2(System.Byte,``0,System.UInt16,``1)">
+            <summary>Sends a response command and its associated data set using the given presentation context</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomAssociation.ReceiveResponse``1(System.Byte,System.UInt16)">
+            <summary>Receives a response expected for a request sent using the given presentation context</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomAssociation.ReceiveDataSet(MDSDK.Dicom.Networking.Messages.ICommand,System.Byte,System.Action{System.IO.Stream})">
+            <summary>Receives the data set that follows the given command</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomAssociation.ReceiveDataSet``1(MDSDK.Dicom.Networking.Messages.ICommand,System.Byte)">
+            <summary>Receives the data set that follows the given command</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Networking.DicomAssociation.CommandHandler">
+            <summary>Handler for commands received using ReceiveCommands</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomAssociation.ReceiveCommands(MDSDK.Dicom.Networking.DicomAssociation.CommandHandler)">
+            <summary>Receives commands and dispatches them to the given command handler until the command handler says stop</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomAssociation.Release">
+            <summary>Releases the association</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomAssociation.Dispose">
+            <summary>Terminates the underlying TCP/IP connection</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Networking.DicomClient">
+            <summary>Enables a local application entity to connect to a remote application entity</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Networking.DicomClient.AETitle">
+            <summary>The AE title of the local application entity</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomClient.#ctor(System.String)">
+            <summary>Constructor</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomClient.ProposePresentationContext(MDSDK.Dicom.Serialization.DicomUID,System.Collections.Generic.IEnumerable{MDSDK.Dicom.Serialization.DicomUID})">
+            <summary>Registers a proposed presentation context and returns the reserved presentation context ID</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomClient.ProposePresentationContext(MDSDK.Dicom.Serialization.DicomUID,MDSDK.Dicom.Serialization.DicomUID[])">
+            <summary>Registers a proposed presentation context and returns the reserved presentation context ID</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Networking.DicomClient.CancellationToken">
+            <summary>Cancellation token that can be set to enable interruption of blocking socket operations</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomClient.ConnectTo(MDSDK.Dicom.Networking.DicomNetworkAddress)">
+            <summary>Connects to a remote application entity and establishes an association using the proposed presentation contexts</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Networking.DicomNetworkAddress">
+            <summary>Represents the DICOM network address of an application entity</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Networking.DicomNetworkAddress.HostNameOrIPAddress">
+            <summary>The host name or IP address of the computer hosting the application entity</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Networking.DicomNetworkAddress.PortNumber">
+            <summary>The port number of the service hosting the application entity</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Networking.DicomNetworkAddress.AETitle">
+            <summary>The AE title of the application entity</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomNetworkAddress.#ctor(System.String,System.UInt16,System.String)">
+            <summary>Constructor</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomNetworkAddress.ToString">
+            <summary>Returns a string of the form HostNameOrIPAddress:PortNumber/AETitle</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomNetworkAddress.TryParse(System.String,MDSDK.Dicom.Networking.DicomNetworkAddress@)">
+            <summary>Tries to convert a string to a DicomNetworkAddress</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.DicomNetworkAddress.Parse(System.String)">
+            <summary>Converts a string to a DicomNetworkAddress</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Networking.Messages.CommandExtensionMethods">
+            <summary>Extension methods for ICommand classes</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.Messages.CommandExtensionMethods.IsFollowedByDataSet(MDSDK.Dicom.Networking.Messages.ICommand)">
+            <summary>Returns whether a received command is followed by a data set</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.Messages.CommandExtensionMethods.StatusIsSuccess(MDSDK.Dicom.Networking.Messages.IResponse)">
+            <summary>Returns whether a received response indicates that the associated operation was successfully completed</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.Messages.CommandExtensionMethods.StatusIsCancel(MDSDK.Dicom.Networking.Messages.IResponse)">
+            <summary>Returns whether a received response indicates that the associated operation was cancelled</summary>
+        </member>
+        <member name="M:MDSDK.Dicom.Networking.Messages.CommandExtensionMethods.StatusIsPending(MDSDK.Dicom.Networking.Messages.IResponse)">
+            <summary>Returns whether a received response indicates that the associated operation is ongoing</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Networking.Messages.RequestPriority">
+            <summary>Request priorities as defined by DICOM</summary>
+        </member>
+        <member name="F:MDSDK.Dicom.Networking.Messages.RequestPriority.Medium">
+            <summary>Medium priority</summary>
+        </member>
+        <member name="F:MDSDK.Dicom.Networking.Messages.RequestPriority.High">
+            <summary>High priority</summary>
+        </member>
+        <member name="F:MDSDK.Dicom.Networking.Messages.RequestPriority.Low">
+            <summary>Low priority</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Networking.AbortException">
+            <summary>Exception thrown when an Abort PDU while waiting for an incoming message</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Networking.AbortException.Source">
+            <summary>Identifies the source of the Abort PDU</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Networking.AbortException.Reason">
+            <summary>Identifies the reason why the Abort PDU was sent</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Networking.Net.AssociationRejectedException">
+            <summary>Exception thrown when an Associate Reject PDU is received in response to an association request</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Networking.Net.AssociationRejectedException.Result">
+            <summary>The Result code returned in the Associate Reject PDU</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Networking.Net.AssociationRejectedException.SourceReason">
+            <summary>The Source and Reason codes returned in the Associate Reject PDU</summary>
+        </member>
+        <member name="T:MDSDK.Dicom.Networking.Net.SourceReason">
+            <summary>Provides diagnostic information about association failures</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Networking.Net.SourceReason.Source">
+            <summary>Identifies the source of the association failure</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Networking.Net.SourceReason.Reason">
+            <summary>Identifies the reason why the association failed</summary>
+        </member>
+        <member name="P:MDSDK.Dicom.Networking.Net.SourceReason.IsTransient">
+            <summary>Returns whether the reason for failure is transient</summary>
+        </member>
+    </members>
+</doc>

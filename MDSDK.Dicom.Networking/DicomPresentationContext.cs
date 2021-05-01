@@ -4,7 +4,7 @@ using MDSDK.Dicom.Serialization;
 
 namespace MDSDK.Dicom.Networking
 {
-    public class DicomPresentationContext
+    internal class DicomPresentationContext
     {
         public byte PresentationContextID { get; }
 

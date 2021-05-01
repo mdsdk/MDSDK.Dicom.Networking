@@ -51,7 +51,7 @@ namespace MDSDK.Dicom.Networking.Messages
         private static CommandHeader DeserializeCommandHeaderFrom(byte[] data)
         {
             var input = new BufferedStreamReader(data);
-            var commandHeaderReader = DicomStreamReader.Create(input, DicomUID.ImplicitVRLittleEndian);
+            var commandHeaderReader = DicomStreamReader.Create(input, DicomUID.TransferSyntax.ImplicitVRLittleEndian);
             return CommandHeaderSerializer.Deserialize(commandHeaderReader);
         }
 
@@ -61,7 +61,7 @@ namespace MDSDK.Dicom.Networking.Messages
             var commandSerializer = GetSerializer(commandHeader.CommandField);
 
             var input = new BufferedStreamReader(data);
-            var commandReader = DicomStreamReader.Create(input, DicomUID.ImplicitVRLittleEndian);
+            var commandReader = DicomStreamReader.Create(input, DicomUID.TransferSyntax.ImplicitVRLittleEndian);
             return (ICommand)commandSerializer.Deserialize(commandReader);
         }
 
@@ -100,7 +100,7 @@ namespace MDSDK.Dicom.Networking.Messages
             dataWriter.Write<UInt32>(4);
             dataWriter.Write<UInt32>(checked((uint)commandGroupLength));
 
-            var commandWriter = DicomStreamWriter.Create(output, DicomUID.ImplicitVRLittleEndian);
+            var commandWriter = DicomStreamWriter.Create(output, DicomUID.TransferSyntax.ImplicitVRLittleEndian);
             serializer.Serialize(commandWriter, command);
         }
     }

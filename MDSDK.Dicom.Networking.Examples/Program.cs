@@ -64,11 +64,11 @@ namespace MDSDK.Dicom.Networking.Test
                 var cFindSCU = new CFindSCU(client);
 
                 var cGetSCU = new CGetSCU(client,
-                    DicomUID.MRImageStorage,
-                    DicomUID.CTImageStorage,
-                    DicomUID.UltrasoundImageStorage,
-                    DicomUID.NuclearMedicineImageStorage,
-                    DicomUID.PositronEmissionTomographyImageStorage
+                    DicomUID.SOPClass.MRImageStorage,
+                    DicomUID.SOPClass.CTImageStorage,
+                    DicomUID.SOPClass.UltrasoundImageStorage,
+                    DicomUID.SOPClass.NuclearMedicineImageStorage,
+                    DicomUID.SOPClass.PositronEmissionTomographyImageStorage
                 );
 
                 using var association = client.ConnectTo(RemoteAEAddress);

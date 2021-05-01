@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace MDSDK.Dicom.Networking.Net
 {
-    public class PresentationContextRequest
+    internal class PresentationContextRequest
     {
         public byte PresentationContextID { get; set; }
 

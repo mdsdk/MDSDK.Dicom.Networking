@@ -13,8 +13,8 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
 
         public CFindSCU(DicomClient client)
         {
-            PresentationContextID = client.ProposePresentationContext(DicomUID.PatientRootQueryRetrieveInformationModelFIND,
-                DicomUID.ImplicitVRLittleEndian);
+            PresentationContextID = client.ProposePresentationContext(DicomUID.SOPClass.PatientRootQueryRetrieveInformationModelFind,
+                DicomUID.TransferSyntax.ImplicitVRLittleEndian);
         }
 
         private IReadOnlyList<TInfo> PerformCFind<TIdentifier, TInfo>(DicomAssociation association, TIdentifier identifier)
@@ -22,27 +22,30 @@ namespace MDSDK.Dicom.Networking.Examples.QueryRetrieve
         {
             var cFindRequest = new CFindRequest
             {
-                AffectedSOPClassUID = DicomUID.PatientRootQueryRetrieveInformationModelFIND,
+                AffectedSOPClassUID = DicomUID.SOPClass.PatientRootQueryRetrieveInformationModelFind,
                 Priority = RequestPriority.Medium
             };
 
-            association.SendRequest(PresentationContextID, cFindRequest, CommandIsFollowedByDataSet.Yes);
-            association.SendDataSet(PresentationContextID, identifier);
+            association.SendRequest(PresentationContextID, cFindRequest, identifier);
 
             var infoList = new List<TInfo>();
 
-            var cFindResponse = association.ReceiveResponse<CFindResponse>(PresentationContextID, cFindRequest.MessageID);
-            while (cFindResponse.StatusIsPending())
+            void CFindResponseHandler(DicomAssociation association, byte presentationContextID,
+                DicomUID transferSyntaxUID, ICommand command, out bool stop)
             {
-                var info = association.ReceiveDataSet<TInfo>(PresentationContextID);
-                infoList.Add(info);
-                cFindResponse = association.ReceiveResponse<CFindResponse>(PresentationContextID, cFindRequest.MessageID);
+                if (command.IsFollowedByDataSet())
+                {
+                    var info = association.ReceiveDataSet<TInfo>(command, presentationContextID);
+                    infoList.Add(info);
+                    stop = false;
+                }
+                else
+                {
+                    stop = true;
+                }
             }
 
-            if (!cFindResponse.StatusIsSuccess())
-            {
-                throw new Exception($"C-FIND SCP returned {cFindResponse.Status}");
-            }
+            association.ReceiveCommands(CFindResponseHandler);
 
             return infoList;
         }

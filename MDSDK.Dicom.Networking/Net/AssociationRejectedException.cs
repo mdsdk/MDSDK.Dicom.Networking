@@ -6,27 +6,18 @@ using System;
 
 namespace MDSDK.Dicom.Networking.Net
 {
+    /// <summary>Exception thrown when an Associate Reject PDU is received in response to an association request</summary>
     public class AssociationRejectedException : Exception
     {
-        public enum RejectResult : byte
-        {
-            Permanent = 1,
-            Transient = 2
-        };
+        /// <summary>The Result code returned in the Associate Reject PDU</summary>
+        public byte Result { get; }
 
-        public RejectResult Result { get; }
-
+        /// <summary>The Source and Reason codes returned in the Associate Reject PDU</summary>
         public SourceReason SourceReason { get; }
-
-        public AssociationRejectedException(SourceReason sourceReason)
-        {
-            Result = sourceReason.IsTransient ? RejectResult.Transient : RejectResult.Permanent;
-            SourceReason = sourceReason;
-        }
 
         internal AssociationRejectedException(AssociateRejectPDU associateRejectPDU)
         {
-            Result = (RejectResult)associateRejectPDU.Result;
+            Result = associateRejectPDU.Result;
             SourceReason = new SourceReason(associateRejectPDU.Source, associateRejectPDU.Reason);
         }
 

@@ -1,11 +1,13 @@
 // This is a generated file. Do not modify.
 
+#pragma warning disable 1591
+
 using MDSDK.Dicom.Serialization;
 
 namespace MDSDK.Dicom.Networking.Messages
 {
-    [Command(CommandType.C_ECHO_RQ, false)]
-    public class CEchoRequest : IRequest
+    [Command(CommandType.C_ECHO_RQ)]
+    public class CEchoRequest : IRequest, IHasNoDataSet
     {
         public string AffectedSOPClassUID { get; set; }
 
@@ -16,3 +18,5 @@ namespace MDSDK.Dicom.Networking.Messages
         public ushort CommandDataSetType { get; set; }
     }
 }
+
+#pragma warning restore 1591

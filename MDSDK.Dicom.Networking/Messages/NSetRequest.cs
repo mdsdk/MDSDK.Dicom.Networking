@@ -1,11 +1,13 @@
 // This is a generated file. Do not modify.
 
+#pragma warning disable 1591
+
 using MDSDK.Dicom.Serialization;
 
 namespace MDSDK.Dicom.Networking.Messages
 {
-    [Command(CommandType.N_SET_RQ, true)]
-    public class NSetRequest : IRequest
+    [Command(CommandType.N_SET_RQ)]
+    public class NSetRequest : IRequest, IMayHaveDataSet
     {
         public string RequestedSOPClassUID { get; set; }
 
@@ -18,3 +20,5 @@ namespace MDSDK.Dicom.Networking.Messages
         public string RequestedSOPInstanceUID { get; set; }
     }
 }
+
+#pragma warning restore 1591

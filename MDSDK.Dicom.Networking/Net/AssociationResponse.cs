@@ -9,7 +9,7 @@ using System.Text;
 
 namespace MDSDK.Dicom.Networking.Net
 {
-    public sealed class AssociationResponse
+    internal sealed class AssociationResponse
     {
         public List<PresentationContextResponse> PresentationContextResponses { get; } = new List<PresentationContextResponse>();
 

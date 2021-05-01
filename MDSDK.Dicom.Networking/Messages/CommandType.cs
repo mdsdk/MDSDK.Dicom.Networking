@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
+#pragma warning disable 1591
+
 namespace MDSDK.Dicom.Networking.Messages
 {
     public enum CommandType : ushort
@@ -29,3 +31,5 @@ namespace MDSDK.Dicom.Networking.Messages
         C_CANCEL_RQ = 0x0FFF,
     }
 }
+
+#pragma warning restore 1591

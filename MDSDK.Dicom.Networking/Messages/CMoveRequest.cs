@@ -1,11 +1,13 @@
 // This is a generated file. Do not modify.
 
+#pragma warning disable 1591
+
 using MDSDK.Dicom.Serialization;
 
 namespace MDSDK.Dicom.Networking.Messages
 {
-    [Command(CommandType.C_MOVE_RQ, true)]
-    public class CMoveRequest : IRequest
+    [Command(CommandType.C_MOVE_RQ)]
+    public class CMoveRequest : IRequest, IMayHaveDataSet
     {
         public string AffectedSOPClassUID { get; set; }
 
@@ -20,3 +22,5 @@ namespace MDSDK.Dicom.Networking.Messages
         public string MoveDestination { get; set; }
     }
 }
+
+#pragma warning restore 1591

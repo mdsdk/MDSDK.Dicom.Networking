@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Robin Boerdijk - All rights reserved - See LICENSE file for license terms
 
+#pragma warning disable 1591
+
 namespace MDSDK.Dicom.Networking.Messages
 {
-    [Command(CommandType.C_CANCEL_RQ, false)]
+    [Command(CommandType.C_CANCEL_RQ)]
     public sealed class CCancelRequest : ICommand
     {
         public uint CommandGroupLength { get; set; }
@@ -14,3 +16,5 @@ namespace MDSDK.Dicom.Networking.Messages
         public ushort CommandDataSetType { get; set; }
     }
 }
+
+#pragma warning restore 1591

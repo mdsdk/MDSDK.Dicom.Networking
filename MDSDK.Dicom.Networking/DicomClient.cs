@@ -10,19 +10,21 @@ using System.Threading;
 
 namespace MDSDK.Dicom.Networking
 {
+    /// <summary>Enables a local application entity to connect to a remote application entity</summary>
     public class DicomClient
     {
+        /// <summary>The AE title of the local application entity</summary>
         public string AETitle { get; }
 
+        /// <summary>Constructor</summary>
         public DicomClient(string aeTitle)
         {
             AETitle = aeTitle;
         }
 
-        public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
-
         private List<PresentationContextRequest> _presentationContextRequests = new List<PresentationContextRequest>();
-        
+
+        /// <summary>Registers a proposed presentation context and returns the reserved presentation context ID</summary>
         public byte ProposePresentationContext(DicomUID sopClassUID, IEnumerable<DicomUID> proposedTransferSyntaxUIDs)
         {
             var presentationContextID = 1 + 2 * _presentationContextRequests.Count;
@@ -43,14 +45,17 @@ namespace MDSDK.Dicom.Networking
 
             return presentationContextRequest.PresentationContextID;
         }
-        
+
+        /// <summary>Registers a proposed presentation context and returns the reserved presentation context ID</summary>
         public byte ProposePresentationContext(DicomUID sopClassUID, params DicomUID[] proposedTransferSyntaxUIDs)
         {
             return ProposePresentationContext(sopClassUID, (IEnumerable<DicomUID>)proposedTransferSyntaxUIDs);
         }
 
-        public StreamWriter TraceWriter { get; set; }
+        /// <summary>Cancellation token that can be set to enable interruption of blocking socket operations</summary>
+        public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
 
+        /// <summary>Connects to a remote application entity and establishes an association using the proposed presentation contexts</summary>
         public DicomAssociation ConnectTo(DicomNetworkAddress ae)
         {
             if (_presentationContextRequests.Count == 0)
@@ -96,5 +101,11 @@ namespace MDSDK.Dicom.Networking
                 throw;
             }
         }
+
+#pragma warning disable 1591
+
+        public StreamWriter TraceWriter { get; set; }
+
+#pragma warning restore 1591
     }
 }

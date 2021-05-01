@@ -14,7 +14,7 @@ using System.Threading;
 
 namespace MDSDK.Dicom.Networking
 {
-    public sealed class DicomConnection : IDisposable
+    internal sealed class DicomConnection : IDisposable
     {
         internal Socket Socket { get; }
 
@@ -186,12 +186,24 @@ namespace MDSDK.Dicom.Networking
             Socket.Shutdown(SocketShutdown.Send);
         }
 
-        public void SendCommand(byte presentationContextID, ICommand command, CommandIsFollowedByDataSet commandIsFollowedByDataSet) 
+        public void SendCommand(byte presentationContextID, ICommand command, Action<Stream> dataSetWriter) 
         {
+            if (command is IMayHaveDataSet mayHaveDataSet)
+            {
+                if ((dataSetWriter == null) && mayHaveDataSet.IsDataSetRequired())
+                {
+                    throw new ArgumentException($"{command} must be followed by a data set");
+                }
+            }
+            else if (dataSetWriter != null)
+            {
+                throw new ArgumentException($"{command} must not be followed by a data set");
+            }
+
             var commandAttribute = command.GetType().GetCustomAttribute<CommandAttribute>();
             
             command.CommandField = commandAttribute.CommandType;
-            command.CommandDataSetType = (commandIsFollowedByDataSet == CommandIsFollowedByDataSet.Yes) ? 0xFEFE : 0x0101;
+            command.CommandDataSetType = (dataSetWriter == null) ? 0x0101 : 0xFEFE;
 
             if (TraceWriter != null)
             {
@@ -204,31 +216,88 @@ namespace MDSDK.Dicom.Networking
                 CommandSerialization.WriteTo(output, command);
                 output.Flush(FlushMode.Deep);
             }
+
+            if (dataSetWriter != null)
+            {
+                using (var stream = new PresentationContextOutputStream(this, presentationContextID, FragmentType.DataSet))
+                {
+                    dataSetWriter.Invoke(stream);
+                    stream.Flush();
+                }
+            }
         }
 
-        public void SendDataSet(byte presentationContextID, Action<Stream> writeDataSetAction)
+        private ICommand _pendingCommand;
+
+        private byte _pendingPresentationContext;
+
+        private void EnsureNoPendingDataSet()
         {
-            using (var stream = new PresentationContextOutputStream(this, presentationContextID, FragmentType.DataSet))
+            if (_pendingCommand != null)
             {
-                writeDataSetAction.Invoke(stream);
-                stream.Flush();
+                throw new InvalidOperationException($"Cannot receive new command before data set of {_pendingCommand} has been received");
+            }
+        }
+
+        private ICommand ReadCommandFrom(PresentationContextInputStream stream)
+        {
+            var input = new BufferedStreamReader(stream);
+            
+            var command = CommandSerialization.ReadFrom(input);
+            
+            if (command is IMayHaveDataSet mayHaveDataSet)
+            {
+                if (command.IsFollowedByDataSet())
+                {
+                    _pendingCommand = command;
+                    _pendingPresentationContext = stream.PresentationContextID;
+                } 
+                else if (mayHaveDataSet.IsDataSetRequired())
+                {
+                    throw new IOException($"{command} must be followed by a data set");
+                }
+            }
+            else if (command.IsFollowedByDataSet())
+            {
+                throw new IOException($"Unexpected data set received for command {command}");
+            }
+            
+            stream.SkipToEnd();
+            
+            if (TraceWriter != null)
+            {
+                NetUtils.TraceOutput(TraceWriter, $"PC {stream.PresentationContextID} received ", command);
+            }
+
+            return command;
+        }
+
+        public ICommand ReceiveCommand(byte presentationContextID)
+        {
+            EnsureNoPendingDataSet();
+
+            ReadNextPDU(DataUnitType.DataTransferPDU);
+
+            using (var stream = new PresentationContextInputStream(this, FragmentType.Command))
+            {
+                if (stream.PresentationContextID != presentationContextID)
+                {
+                    throw new IOException($"Expected PCID {presentationContextID} but got {stream.PresentationContextID}");
+                }
+                return ReadCommandFrom(stream);
             }
         }
 
         public bool TryReceiveCommand(out byte presentationContextID, out ICommand command)
         {
+            EnsureNoPendingDataSet();
+
             if (ReadNextPDU(DataUnitType.DataTransferPDU, DataUnitType.ReleaseRequestPDU) is DataTransferPDUHeader)
             {
                 using (var stream = new PresentationContextInputStream(this, FragmentType.Command))
                 {
                     presentationContextID = stream.PresentationContextID;
-                    var input = new BufferedStreamReader(stream);
-                    command = CommandSerialization.ReadFrom(input);
-                    stream.SkipToEnd();
-                    if (TraceWriter != null)
-                    {
-                        NetUtils.TraceOutput(TraceWriter, $"PC {presentationContextID} received ", command);
-                    }
+                    command = ReadCommandFrom(stream);
                 }
                 return true;
             }
@@ -240,29 +309,23 @@ namespace MDSDK.Dicom.Networking
             }
         }
 
-        public ICommand ReceiveCommand(byte presentationContextID)
+        public void ReceiveDataSet(ICommand command, byte presentationContextID, Action<Stream> dataSetReader)
         {
-            ReadNextPDU(DataUnitType.DataTransferPDU);
-
-            using (var stream = new PresentationContextInputStream(this, FragmentType.Command))
+            if ((_pendingCommand == null) || (_pendingPresentationContext == 0))
             {
-                if (stream.PresentationContextID != presentationContextID)
-                {
-                    throw new IOException($"Expected PCID {presentationContextID} but got {stream.PresentationContextID}");
-                }
-                var input = new BufferedStreamReader(stream);
-                var command = CommandSerialization.ReadFrom(input);
-                stream.SkipToEnd();
-                if (TraceWriter != null)
-                {
-                    NetUtils.TraceOutput(TraceWriter, $"PC {presentationContextID} received ", command);
-                }
-                return command;
+                throw new InvalidOperationException("No pending data set");
             }
-        }
 
-        public void ReceiveDataSet(byte presentationContextID, Action<Stream> readDataSetAction)
-        {
+            if (command != _pendingCommand)
+            {
+                throw new ArgumentException($"{command} does not match pending command {_pendingCommand}");
+            }
+
+            if (presentationContextID != _pendingPresentationContext)
+            {
+                throw new ArgumentException($"{presentationContextID} does not match pending presentation context {_pendingPresentationContext}");
+            }
+
             if (Input.Position == EndOfDataTransferPDUPosition)
             {
                 ReadNextDataTransferPDU();
@@ -274,9 +337,12 @@ namespace MDSDK.Dicom.Networking
                 {
                     throw new IOException($"Expected PCID {presentationContextID} but got {stream.PresentationContextID}");
                 }
-                readDataSetAction.Invoke(stream);
+                dataSetReader.Invoke(stream);
                 stream.SkipToEnd();
             }
+
+            _pendingCommand = null;
+            _pendingPresentationContext = 0;
         }
 
         public uint? MaxDataTransferPDULengthRequestedByPeer { get; private set; }

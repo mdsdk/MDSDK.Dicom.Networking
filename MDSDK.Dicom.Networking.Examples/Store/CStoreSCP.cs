@@ -13,13 +13,13 @@ namespace MDSDK.Dicom.Networking.Examples.Store
 
         public CStoreSCP(DicomClient client, DicomUID storageSopClassUID)
         {
-            PresentationContextID = client.ProposePresentationContext(storageSopClassUID, DicomUID.ImplicitVRLittleEndian);
+            PresentationContextID = client.ProposePresentationContext(storageSopClassUID, DicomUID.TransferSyntax.ImplicitVRLittleEndian);
             StorageSOPClassUID = storageSopClassUID;
         }
 
         public void HandleCStoreRequest(DicomAssociation association, CStoreRequest cStoreRequest)
         {
-            association.ReceiveDataSet(PresentationContextID, stream => { });
+            association.ReceiveDataSet(cStoreRequest, PresentationContextID, stream => { });
 
             var cStoreResponse = new CStoreResponse
             {
@@ -28,7 +28,7 @@ namespace MDSDK.Dicom.Networking.Examples.Store
                 Status = 0x0000
             };
 
-            association.SendResponse(PresentationContextID, cStoreResponse, cStoreRequest.MessageID, CommandIsFollowedByDataSet.No);
+            association.SendResponse(PresentationContextID, cStoreResponse, cStoreRequest.MessageID);
         }
     }
 }

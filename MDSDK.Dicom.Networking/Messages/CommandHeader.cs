@@ -2,7 +2,7 @@
 
 namespace MDSDK.Dicom.Networking.Messages
 {
-    public class CommandHeader
+    internal class CommandHeader
     {
         public string AffectedSOPClassUID { get; set; }
 

@@ -1,11 +1,13 @@
 // This is a generated file. Do not modify.
 
+#pragma warning disable 1591
+
 using MDSDK.Dicom.Serialization;
 
 namespace MDSDK.Dicom.Networking.Messages
 {
-    [Command(CommandType.C_MOVE_RSP, true)]
-    public class CMoveResponse : IResponse
+    [Command(CommandType.C_MOVE_RSP)]
+    public class CMoveResponse : IResponse, IMayHaveDataSet
     {
         public string AffectedSOPClassUID { get; set; }
 
@@ -26,3 +28,5 @@ namespace MDSDK.Dicom.Networking.Messages
         public ushort NumberOfWarningSuboperations { get; set; }
     }
 }
+
+#pragma warning restore 1591
