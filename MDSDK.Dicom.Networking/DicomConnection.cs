@@ -203,7 +203,7 @@ namespace MDSDK.Dicom.Networking
             var commandAttribute = command.GetType().GetCustomAttribute<CommandAttribute>();
             
             command.CommandField = commandAttribute.CommandType;
-            command.CommandDataSetType = (dataSetWriter == null) ? 0x0101 : 0xFEFE;
+            command.CommandDataSetType = (ushort)((dataSetWriter == null) ? 0x0101 : 0xFEFE);
 
             if (TraceWriter != null)
             {
